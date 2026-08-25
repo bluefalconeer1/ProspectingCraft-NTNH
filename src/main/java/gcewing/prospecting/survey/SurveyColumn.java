@@ -54,4 +54,8 @@ public class SurveyColumn {
                 .getKey());
         return result;
     }
+
+    Map<String, Integer> getOreCounts() {
+        return Collections.unmodifiableMap(oreCounts);
+    }
 }

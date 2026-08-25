@@ -1,6 +1,7 @@
 package gcewing.prospecting.survey;
 
 import java.util.BitSet;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -26,6 +27,22 @@ public class SurveyArea {
 
     public int getDimensionId() {
         return dimensionId;
+    }
+
+    public int getMinX() {
+        return minX;
+    }
+
+    public int getMinZ() {
+        return minZ;
+    }
+
+    public int getWidth() {
+        return width;
+    }
+
+    public int getHeight() {
+        return height;
     }
 
     public void markSurveyed(int x, int z) {
@@ -55,6 +72,14 @@ public class SurveyArea {
         if (index < 0 || !surveyedColumns.get(index)) return null;
         SurveyColumn column = oreColumns.get(index);
         return column == null ? new SurveyColumn() : column;
+    }
+
+    BitSet copySurveyedColumns() {
+        return (BitSet) surveyedColumns.clone();
+    }
+
+    Map<Integer, SurveyColumn> getOreColumns() {
+        return Collections.unmodifiableMap(oreColumns);
     }
 
     private int getRequiredIndex(int x, int z) {

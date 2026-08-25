@@ -1,0 +1,55 @@
+package gcewing.prospecting.survey;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+import net.minecraft.nbt.NBTTagCompound;
+
+import org.junit.Test;
+
+public class SurveyAreaNbtTest {
+
+    @Test
+    public void surveyAreaSurvivesNbtRoundTrip() {
+        SurveyArea original = new SurveyArea(7, -64, 32, 3, 2);
+        original.markSurveyed(-64, 32);
+        original.recordOre(-63, 32, "Nickel", 3);
+        original.recordOre(-63, 32, "Iron", 1);
+        original.recordOre(-62, 33, "Copper", 2);
+
+        NBTTagCompound nbt = SurveyAreaNbt.write(original);
+        SurveyArea restored = SurveyAreaNbt.read(nbt);
+
+        assertEquals(7, restored.getDimensionId());
+        assertEquals(-64, restored.getMinX());
+        assertEquals(32, restored.getMinZ());
+        assertEquals(3, restored.getWidth());
+        assertEquals(2, restored.getHeight());
+        assertTrue(restored.isSurveyed(-64, 32));
+        assertTrue(
+            restored.getColumn(-64, 32)
+                .isEmpty());
+        assertEquals(
+            3,
+            restored.getColumn(-63, 32)
+                .getOreCount("Nickel"));
+        assertEquals(
+            1,
+            restored.getColumn(-63, 32)
+                .getOreCount("Iron"));
+        assertEquals(
+            2,
+            restored.getColumn(-62, 33)
+                .getOreCount("Copper"));
+        assertFalse(restored.isSurveyed(-64, 33));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void rejectsUnknownFormatVersions() {
+        NBTTagCompound nbt = new NBTTagCompound();
+        nbt.setInteger("formatVersion", 99);
+
+        SurveyAreaNbt.read(nbt);
+    }
+}
