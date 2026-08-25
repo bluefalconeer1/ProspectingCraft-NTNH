@@ -67,6 +67,7 @@ public class SeismicRecorderTE extends BaseTileInventory implements ITickable {
     protected int numGeophones;
     protected boolean geophonesOkay;
     protected int linkTimer;
+    protected UUID ownerId;
 
     public SeismicRecorderTE() {
         super();
@@ -88,6 +89,7 @@ public class SeismicRecorderTE extends BaseTileInventory implements ITickable {
         colorMode = nbt.getBoolean("colorMode");
         numGeophones = nbt.getInteger("numGeophones");
         geophonesOkay = nbt.getBoolean("geophonesOkay");
+        ownerId = readUuid(nbt, "ownerId");
     }
 
     @Override
@@ -100,6 +102,25 @@ public class SeismicRecorderTE extends BaseTileInventory implements ITickable {
         nbt.setBoolean("colorMode", colorMode);
         nbt.setInteger("numGeophones", numGeophones);
         nbt.setBoolean("geophonesOkay", geophonesOkay);
+        if (ownerId != null) nbt.setString("ownerId", ownerId.toString());
+    }
+
+    protected UUID readUuid(NBTTagCompound nbt, String key) {
+        if (!nbt.hasKey(key)) return null;
+        try {
+            return UUID.fromString(nbt.getString(key));
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
+    }
+
+    public UUID getOwnerId() {
+        return ownerId;
+    }
+
+    public void setOwnerId(UUID ownerId) {
+        this.ownerId = ownerId;
+        markChanged();
     }
 
     public void inputSignal(boolean signal) {

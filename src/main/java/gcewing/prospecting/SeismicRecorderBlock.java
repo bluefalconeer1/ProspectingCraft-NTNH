@@ -8,7 +8,9 @@ package gcewing.prospecting;
 
 import net.minecraft.block.*;
 import net.minecraft.block.material.Material;
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.*;
+import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.*;
 import net.minecraft.util.*;
 import net.minecraft.world.*;
@@ -41,6 +43,15 @@ public class SeismicRecorderBlock extends BaseBlock<SeismicRecorderTE> {
         float cx, float cy, float cz) {
         ProspectingCraft.mod.openGui(player, ProspectingCraft.seismicRecorderGui, world, pos);
         return true;
+    }
+
+    @Override
+    public void onBlockPlacedBy(World world, BlockPos pos, IBlockState state, EntityLivingBase entity,
+        ItemStack stack) {
+        if (!world.isRemote && entity instanceof EntityPlayer) {
+            SeismicRecorderTE te = getTileEntity(world, pos);
+            if (te != null) te.setOwnerId(entity.getUniqueID());
+        }
     }
 
 }
