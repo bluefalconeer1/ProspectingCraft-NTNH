@@ -56,7 +56,7 @@ public class ProspectingCraft extends BaseMod<ProspectingCraftClient> {
         creativeTab = new CreativeTabs("prospectingcraft:all") {
 
             public Item getTabIconItem() {
-                return itemProspectingPick;
+                return Item.getItemFromBlock(blockSeismicRecorder);
             }
         };
     }
@@ -109,6 +109,7 @@ public class ProspectingCraft extends BaseMod<ProspectingCraftClient> {
         blockGSAKit = addBlock(
             "gsa_kit",
             new BaseBlock(Material.wood, BaseOrientation.orient4WaysByState, GSAKitTE.class));
+        blockGSAKit.setCreativeTab(null);
         blockGSAKit.setOpaque(false);
         blockGSAKit.setModelAndTextures("gsakit_open.smeg", "gsa_kit", "minecraft:glass_white");
     }
@@ -130,13 +131,19 @@ public class ProspectingCraft extends BaseMod<ProspectingCraftClient> {
         itemGeologicalSample.setMaxDamage(16);
         itemGeologicalSample.setCreativeTab(null);
         itemProspectingPick = newItem("prospecting_pick", ProspectingPickItem.class);
+        itemProspectingPick.setCreativeTab(null);
         itemLitmusPaper = newItem("litmus_paper");
+        itemLitmusPaper.setCreativeTab(null);
         itemRedtoothTransmitter = newItem("redtooth_transmitter");
         itemRedtoothReceiver = newItem("redtooth_receiver");
         itemTestTube = newItem("test_tube");
+        itemTestTube.setCreativeTab(null);
         itemEyeglass = newItem("eyeglass", EyeglassItem.class);
+        itemEyeglass.setCreativeTab(null);
         itemMagnetometer = newItem("magnetometer", MagnetometerItem.class);
+        itemMagnetometer.setCreativeTab(null);
         itemNaquadahDetector = newItem("naquadah_detector", NaquadahDetectorItem.class);
+        itemNaquadahDetector.setCreativeTab(null);
     }
 
     protected Item newInkItem(String name) {
@@ -171,60 +178,8 @@ public class ProspectingCraft extends BaseMod<ProspectingCraftClient> {
             "plankWood",
             'f',
             Items.feather);
-        newRecipe(blockGSAKit, 1, "ttt", " c ", 't', itemTestTube, 'c', Blocks.chest);
-        newRecipe(itemTestTube, 3, "g", "g", 'g', "blockGlass");
         newRecipe(itemRedtoothTransmitter, 1, "t", "W", 't', Blocks.redstone_torch, 'W', "plankWood");
         newRecipe(itemRedtoothReceiver, 1, "Wt", 't', Blocks.redstone_torch, 'W', "plankWood");
-        newRecipe(itemProspectingPick, 1, "CC", " /", 'C', "cobblestone", '/', Items.stick);
-        newRecipe(itemEyeglass, 1, " G", "/ ", 'G', "blockGlass", '/', Items.stick);
-        newRecipe(
-            itemMagnetometer,
-            1,
-            "WGW",
-            "WIW",
-            "W@W",
-            'W',
-            "plankWood",
-            'G',
-            "blockGlass",
-            'I',
-            "ingotIron",
-            '@',
-            Items.string);
-        newRecipe(
-            itemMagnetometer,
-            1,
-            "WGW",
-            "WCW",
-            "W@W",
-            'W',
-            "plankWood",
-            'G',
-            "blockGlass",
-            'C',
-            "ingotCopper",
-            '@',
-            Items.string);
-        newRecipe(
-            itemNaquadahDetector,
-            1,
-            "gG*",
-            "yey",
-            "SrS",
-            'g',
-            "dyeGreen",
-            'G',
-            "blockGlass",
-            '*',
-            "dustGlowstone",
-            'y',
-            "dyeYellow",
-            'e',
-            Items.spider_eye,
-            'S',
-            Blocks.stone,
-            'r',
-            "dustRedstone");
         newShapelessRecipe(
             itemInk[0],
             1,
@@ -245,8 +200,6 @@ public class ProspectingCraft extends BaseMod<ProspectingCraftClient> {
             1,
             "dyeCyan", // new ItemStack(Items.dye, 1, 6),
             Items.potionitem);
-        newShapelessRecipe(itemLitmusPaper, 64, Items.paper, "flowerRed", "flowerBlue");
-        newShapelessRecipe(itemLitmusPaper, 64, Items.paper, "flowerPurple");
     }
 
     @Override

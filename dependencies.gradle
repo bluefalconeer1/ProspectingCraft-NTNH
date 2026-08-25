@@ -35,5 +35,6 @@
  */
 dependencies {
     api("com.github.GTNewHorizons:Navigator:1.1.6:dev")
+    compileOnly("com.github.GTNewHorizons:NotEnoughItems:2.8.114-GTNH:dev") { transitive = false }
     testImplementation("junit:junit:4.13.2")
 }
