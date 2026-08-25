@@ -1,0 +1,21 @@
+{
+	"modListVersion": 2,
+	"modList": [{
+		"modid": "${modId}",
+		"name": "${modName}",
+		"description": "A direct replacement of ProspectingCraft for NT:NH, focused on the Geological Surveyor.",
+		"version": "${modVersion}",
+		"mcversion": "${minecraftVersion}",
+		"url": "https://github.com/bluefalconeer1/ProspectingCraft-NTNH",
+		"updateUrl": "",
+		"authorList": ["bluefalconeer1"],
+		"credits": "Based on the original ProspectingCraft by Greg Ewing.",
+		"logoFile": "",
+		"screenshots": [],
+		"parent": "",
+		"requiredMods": ["navigator"],
+		"dependencies": [],
+		"dependants": [],
+		"useDependencyInformation": false
+	}]
+}
