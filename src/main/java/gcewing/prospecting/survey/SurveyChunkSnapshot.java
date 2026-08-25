@@ -47,6 +47,13 @@ public class SurveyChunkSnapshot {
         return columns[getRequiredIndex(localX, localZ)];
     }
 
+    public boolean isFullyUnsurveyed() {
+        for (SurveyColumnSnapshot column : columns) {
+            if (column.getState() != SurveyColumnSnapshot.State.UNSURVEYED) return false;
+        }
+        return true;
+    }
+
     void setColumn(int localX, int localZ, SurveyColumnSnapshot column) {
         if (column == null) throw new IllegalArgumentException("Survey column snapshot must not be null");
         columns[getRequiredIndex(localX, localZ)] = column;

@@ -3,11 +3,13 @@ package gcewing.prospecting.client.map;
 import com.gtnewhorizons.navigator.api.model.steps.UniversalRenderStep;
 import com.gtnewhorizons.navigator.api.util.DrawUtils;
 
+import gcewing.prospecting.survey.SurveyChunkSnapshot;
+import gcewing.prospecting.survey.SurveyColumnSnapshot;
+
 public class OreSurveyRenderStep extends UniversalRenderStep<OreSurveyChunkLocation> {
 
     private static final int CHUNK_WIDTH = 16;
-    private static final int UNSURVEYED_COLOR = 0x777777;
-    private static final int UNSURVEYED_ALPHA = 110;
+    private static final double COLUMN_WIDTH = 1.0;
 
     public OreSurveyRenderStep(OreSurveyChunkLocation location) {
         super(location);
@@ -17,6 +19,40 @@ public class OreSurveyRenderStep extends UniversalRenderStep<OreSurveyChunkLocat
     @Override
     public void draw(double x, double y, float drawScale, double zoom) {
         if (isMinimap()) return;
-        DrawUtils.drawRect(x, y, getAdjustedWidth(), getAdjustedHeight(), UNSURVEYED_COLOR, UNSURVEYED_ALPHA);
+
+        SurveyChunkSnapshot snapshot = location.getSnapshot();
+        if (snapshot == null || snapshot.isFullyUnsurveyed()) {
+            drawUnsurveyed(x, y, getAdjustedWidth(), getAdjustedHeight());
+            return;
+        }
+
+        for (int localZ = 0; localZ < CHUNK_WIDTH; localZ++) for (int localX = 0; localX < CHUNK_WIDTH; localX++) {
+            drawColumn(x + localX, y + localZ, snapshot.getColumn(localX, localZ));
+        }
+    }
+
+    private static void drawColumn(double x, double y, SurveyColumnSnapshot column) {
+        switch (column.getState()) {
+            case UNSURVEYED:
+                drawUnsurveyed(x, y, COLUMN_WIDTH, COLUMN_WIDTH);
+                break;
+            case SURVEYED_EMPTY:
+                break;
+            case ORE_BEARING:
+                DrawUtils.drawRect(
+                    x,
+                    y,
+                    COLUMN_WIDTH,
+                    COLUMN_WIDTH,
+                    SurveyMapStyle.getOreColor(column.getDominantOreName()),
+                    SurveyMapStyle.getOreAlpha(column.getDominantOreCount()));
+                break;
+            default:
+                throw new IllegalStateException("Unknown survey column state: " + column.getState());
+        }
+    }
+
+    private static void drawUnsurveyed(double x, double y, double width, double height) {
+        DrawUtils.drawRect(x, y, width, height, SurveyMapStyle.UNSURVEYED_COLOR, SurveyMapStyle.UNSURVEYED_ALPHA);
     }
 }

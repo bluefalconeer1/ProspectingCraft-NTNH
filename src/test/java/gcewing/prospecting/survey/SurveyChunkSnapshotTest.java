@@ -28,6 +28,7 @@ public class SurveyChunkSnapshotTest {
 
         SurveyChunkSnapshot snapshot = SurveyChunkSnapshot.from(data, 3, 2, 3);
 
+        assertEquals(false, snapshot.isFullyUnsurveyed());
         assertEquals(3, snapshot.getDimensionId());
         assertEquals(2, snapshot.getChunkX());
         assertEquals(3, snapshot.getChunkZ());
@@ -43,6 +44,13 @@ public class SurveyChunkSnapshotTest {
         assertSame(SurveyColumnSnapshot.UNSURVEYED, unsurveyed);
         assertNull(unsurveyed.getDominantOreName());
         assertEquals(0, unsurveyed.getDominantOreCount());
+    }
+
+    @Test
+    public void identifiesAChunkWithNoSurveyedColumns() {
+        SurveyChunkSnapshot snapshot = SurveyChunkSnapshot.from(newData(), 0, 4, -7);
+
+        assertEquals(true, snapshot.isFullyUnsurveyed());
     }
 
     @Test
