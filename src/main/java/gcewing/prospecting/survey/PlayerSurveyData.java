@@ -51,8 +51,16 @@ public class PlayerSurveyData extends WorldSavedData {
 
     public void addSurveyArea(SurveyArea surveyArea) {
         if (surveyArea == null) throw new IllegalArgumentException("Survey area must not be null");
+        if (getSurveyArea(surveyArea.getSurveyId()) != null)
+            throw new IllegalArgumentException("Survey ID is already present: " + surveyArea.getSurveyId());
         surveyAreas.add(surveyArea);
         markDirty();
+    }
+
+    public SurveyArea getSurveyArea(UUID surveyId) {
+        if (surveyId == null) return null;
+        for (SurveyArea surveyArea : surveyAreas) if (surveyId.equals(surveyArea.getSurveyId())) return surveyArea;
+        return null;
     }
 
     public boolean isSurveyed(int dimensionId, int x, int z) {

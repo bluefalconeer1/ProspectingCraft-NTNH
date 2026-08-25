@@ -31,6 +31,10 @@ public class PlayerSurveyDataTest {
         assertEquals(OWNER_ID, restored.getOwnerId());
         assertEquals(1, restored.getSurveyAreaCount());
         assertEquals(
+            area.getSurveyId(),
+            restored.getSurveyArea(area.getSurveyId())
+                .getSurveyId());
+        assertEquals(
             4,
             restored.getColumn(7, 10, 20)
                 .getOreCount("Nickel"));
@@ -71,6 +75,15 @@ public class PlayerSurveyDataTest {
 
         UUID otherOwner = UUID.fromString("27910713-3ba1-4f00-8000-000000000002");
         newData(otherOwner).readFromNBT(nbt);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void rejectsDuplicateSurveyIds() {
+        PlayerSurveyData data = newData(OWNER_ID);
+        UUID surveyId = UUID.fromString("37910713-3ba1-4f00-8000-000000000003");
+        data.addSurveyArea(new SurveyArea(surveyId, 0, 0, 0, 1, 1));
+
+        data.addSurveyArea(new SurveyArea(surveyId, 0, 10, 10, 1, 1));
     }
 
     private static PlayerSurveyData newData(UUID ownerId) {

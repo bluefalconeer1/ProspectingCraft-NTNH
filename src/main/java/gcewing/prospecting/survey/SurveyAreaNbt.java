@@ -4,13 +4,14 @@ import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 
 public final class SurveyAreaNbt {
 
-    private static final int FORMAT_VERSION = 1;
+    private static final int FORMAT_VERSION = 2;
     private static final int COMPOUND_TAG_ID = 10;
 
     private SurveyAreaNbt() {}
@@ -18,6 +19,10 @@ public final class SurveyAreaNbt {
     public static NBTTagCompound write(SurveyArea area) {
         NBTTagCompound nbt = new NBTTagCompound();
         nbt.setInteger("formatVersion", FORMAT_VERSION);
+        nbt.setString(
+            "surveyId",
+            area.getSurveyId()
+                .toString());
         nbt.setInteger("dimensionId", area.getDimensionId());
         nbt.setInteger("minX", area.getMinX());
         nbt.setInteger("minZ", area.getMinZ());
@@ -53,6 +58,7 @@ public final class SurveyAreaNbt {
             throw new IllegalArgumentException("Unsupported survey data version: " + formatVersion);
 
         SurveyArea area = new SurveyArea(
+            UUID.fromString(nbt.getString("surveyId")),
             nbt.getInteger("dimensionId"),
             nbt.getInteger("minX"),
             nbt.getInteger("minZ"),

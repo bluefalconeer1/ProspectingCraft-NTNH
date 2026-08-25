@@ -4,9 +4,11 @@ import java.util.BitSet;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 public class SurveyArea {
 
+    private final UUID surveyId;
     private final int dimensionId;
     private final int minX;
     private final int minZ;
@@ -16,13 +18,23 @@ public class SurveyArea {
     private final Map<Integer, SurveyColumn> oreColumns = new HashMap<Integer, SurveyColumn>();
 
     public SurveyArea(int dimensionId, int minX, int minZ, int width, int height) {
+        this(UUID.randomUUID(), dimensionId, minX, minZ, width, height);
+    }
+
+    public SurveyArea(UUID surveyId, int dimensionId, int minX, int minZ, int width, int height) {
+        if (surveyId == null) throw new IllegalArgumentException("Survey ID must not be null");
         if (width <= 0 || height <= 0) throw new IllegalArgumentException("Survey dimensions must be positive");
+        this.surveyId = surveyId;
         this.dimensionId = dimensionId;
         this.minX = minX;
         this.minZ = minZ;
         this.width = width;
         this.height = height;
         surveyedColumns = new BitSet(width * height);
+    }
+
+    public UUID getSurveyId() {
+        return surveyId;
     }
 
     public int getDimensionId() {

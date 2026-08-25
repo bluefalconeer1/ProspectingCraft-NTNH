@@ -21,6 +21,7 @@ public class SurveyAreaNbtTest {
         NBTTagCompound nbt = SurveyAreaNbt.write(original);
         SurveyArea restored = SurveyAreaNbt.read(nbt);
 
+        assertEquals(original.getSurveyId(), restored.getSurveyId());
         assertEquals(7, restored.getDimensionId());
         assertEquals(-64, restored.getMinX());
         assertEquals(32, restored.getMinZ());
