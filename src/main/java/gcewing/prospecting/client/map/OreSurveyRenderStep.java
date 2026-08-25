@@ -55,4 +55,8 @@ public class OreSurveyRenderStep extends UniversalRenderStep<OreSurveyChunkLocat
     private static void drawUnsurveyed(double x, double y, double width, double height) {
         DrawUtils.drawRect(x, y, width, height, SurveyMapStyle.UNSURVEYED_COLOR, SurveyMapStyle.UNSURVEYED_ALPHA);
     }
+
+    SurveyColumnSnapshot getHoveredOreColumn(double mouseX, double mouseZ) {
+        return OreSurveyHoverResolver.findOreColumn(location.getSnapshot(), getX(), getY(), mouseX, mouseZ);
+    }
 }

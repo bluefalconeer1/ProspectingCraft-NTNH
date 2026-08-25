@@ -5,7 +5,6 @@ import javax.annotation.Nullable;
 import com.gtnewhorizons.navigator.api.model.SupportedMods;
 import com.gtnewhorizons.navigator.api.model.layers.LayerManager;
 import com.gtnewhorizons.navigator.api.model.layers.LayerRenderer;
-import com.gtnewhorizons.navigator.api.model.layers.UniversalLayerRenderer;
 import com.gtnewhorizons.navigator.api.model.locations.ILocationProvider;
 
 public class OreSurveyLayerManager extends LayerManager {
@@ -19,8 +18,7 @@ public class OreSurveyLayerManager extends LayerManager {
     @Override
     protected @Nullable LayerRenderer addLayerRenderer(LayerManager manager, SupportedMods mod) {
         if (mod != SupportedMods.XaeroWorldMap) return null;
-        return new UniversalLayerRenderer(manager)
-            .withRenderStep(location -> new OreSurveyRenderStep((OreSurveyChunkLocation) location));
+        return new OreSurveyLayerRenderer(manager);
     }
 
     @Override
