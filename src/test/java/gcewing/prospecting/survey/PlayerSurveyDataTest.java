@@ -120,6 +120,38 @@ public class PlayerSurveyDataTest {
             new java.util.ArrayList<String>(data.getDiscoveredOreNames()));
     }
 
+    @Test
+    public void canonicalizesSelectionAgainstDiscoveredOres() {
+        PlayerSurveyData data = newData(OWNER_ID);
+        SurveyArea area = new SurveyArea(0, 0, 0, 1, 1);
+        area.recordOre(0, 0, "Lignite", 3);
+        data.addSurveyArea(area);
+
+        SurveyOreSelection selection = data
+            .canonicalizeOreSelection(SurveyOreSelection.custom(Arrays.asList("lIGNite")));
+
+        assertEquals(SurveyOreSelection.Mode.CUSTOM, selection.getMode());
+        assertTrue(selection.includes("Lignite"));
+    }
+
+    @Test
+    public void canonicalizesSelectionAgainstProvidedRuntimeCatalog() {
+        PlayerSurveyData data = newData(OWNER_ID);
+
+        SurveyOreSelection selection = data.canonicalizeOreSelection(
+            SurveyOreSelection.custom(Arrays.asList("coltan")),
+            Arrays.asList("Coltan", "Lignite"));
+
+        assertTrue(selection.includes("Coltan"));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void rejectsSelectionOfUndiscoveredOre() {
+        PlayerSurveyData data = newData(OWNER_ID);
+
+        data.canonicalizeOreSelection(SurveyOreSelection.custom(Arrays.asList("TypoOre")));
+    }
+
     @Test(expected = IllegalArgumentException.class)
     public void rejectsDataSavedForAnotherOwner() {
         PlayerSurveyData firstOwner = newData(OWNER_ID);

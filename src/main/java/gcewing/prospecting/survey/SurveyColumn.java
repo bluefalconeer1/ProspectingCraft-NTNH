@@ -14,8 +14,10 @@ public class SurveyColumn {
     public void addOre(String oreName, int amount) {
         if (oreName == null || oreName.isEmpty()) throw new IllegalArgumentException("Ore name must not be empty");
         if (amount <= 0) throw new IllegalArgumentException("Ore amount must be positive");
-        Integer oldAmount = oreCounts.get(oreName);
-        oreCounts.put(oreName, oldAmount == null ? amount : oldAmount + amount);
+        String canonicalName = OreNameNormalizer.normalizeCanonicalName(oreName);
+        if (canonicalName == null) return;
+        Integer oldAmount = oreCounts.get(canonicalName);
+        oreCounts.put(canonicalName, oldAmount == null ? amount : oldAmount + amount);
     }
 
     public boolean isEmpty() {
@@ -23,7 +25,7 @@ public class SurveyColumn {
     }
 
     public int getOreCount(String oreName) {
-        Integer amount = oreCounts.get(oreName);
+        Integer amount = oreCounts.get(OreNameNormalizer.normalizeCanonicalName(oreName));
         return amount == null ? 0 : amount;
     }
 

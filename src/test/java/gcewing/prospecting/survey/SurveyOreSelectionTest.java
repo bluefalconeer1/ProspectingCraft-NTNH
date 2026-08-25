@@ -34,4 +34,22 @@ public class SurveyOreSelectionTest {
 
         assertFalse(selection.includes("Iron"));
     }
+
+    @Test
+    public void oldNetherSelectionMatchesGroupedBaseOre() {
+        SurveyOreSelection selection = SurveyOreSelection.custom(Arrays.asList("NetherUranium"));
+
+        assertTrue(selection.includes("Uranium"));
+        assertTrue(selection.includes("NetherUranium"));
+    }
+
+    @Test
+    public void volcanicIsExcludedFromAllAndCustomSelections() {
+        assertFalse(
+            SurveyOreSelection.showAll()
+                .includes("Volcanic"));
+        assertFalse(
+            SurveyOreSelection.custom(Arrays.asList("Volcanic"))
+                .includes("Volcanic"));
+    }
 }

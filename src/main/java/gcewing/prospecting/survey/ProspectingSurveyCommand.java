@@ -70,12 +70,12 @@ public class ProspectingSurveyCommand extends CommandBase {
     }
 
     private static List<String> resolveDiscoveredOreNames(PlayerSurveyData data, String[] arguments) {
-        Set<String> discoveredOreNames = data.getDiscoveredOreNames();
+        Set<String> discoveredOreNames = SurveyOreCatalog.getSelectableOreNames(data);
         List<String> resolvedNames = new ArrayList<String>();
         for (int i = 2; i < arguments.length; i++) {
             String resolvedName = findIgnoringCase(discoveredOreNames, arguments[i]);
             if (resolvedName == null)
-                throw new CommandException("Ore has not been discovered in your surveys: " + arguments[i]);
+                throw new CommandException("Ore is not a selectable registered block ore: " + arguments[i]);
             resolvedNames.add(resolvedName);
         }
         return resolvedNames;

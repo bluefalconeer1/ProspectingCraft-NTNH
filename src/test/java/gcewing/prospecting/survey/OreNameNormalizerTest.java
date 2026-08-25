@@ -13,7 +13,15 @@ public class OreNameNormalizerTest {
     @Test
     public void removesTheOrePrefix() {
         assertEquals("Iron", OreNameNormalizer.normalize("oreIron"));
-        assertEquals("NetherQuartz", OreNameNormalizer.normalize("oreNetherQuartz"));
+        assertEquals("Quartz", OreNameNormalizer.normalize("oreNetherQuartz"));
+    }
+
+    @Test
+    public void groupsNetherVariantsWithTheirBaseMaterial() {
+        assertEquals("Uranium", OreNameNormalizer.normalize("oreNetherUranium"));
+        assertEquals(
+            Collections.singleton("Uranium"),
+            OreNameNormalizer.normalizeAll(Arrays.asList("oreUranium", "oreNetherUranium")));
     }
 
     @Test
@@ -27,6 +35,12 @@ public class OreNameNormalizerTest {
         assertEquals(
             Collections.singleton("Nickel"),
             OreNameNormalizer.normalizeAll(Arrays.asList("oreNickel", "oreNickelPure", "ingotNickel")));
+    }
+
+    @Test
+    public void excludesDecorativeVolcanicOreTag() {
+        assertNull(OreNameNormalizer.normalize("oreVolcanic"));
+        assertNull(OreNameNormalizer.normalizeCanonicalName("Volcanic"));
     }
 
     @Test

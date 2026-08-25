@@ -15,6 +15,9 @@ import gcewing.prospecting.BaseDataChannel.ChannelOutput;
 import gcewing.prospecting.ProspectingCraft;
 import gcewing.prospecting.survey.SurveyChunkSnapshot;
 import gcewing.prospecting.survey.SurveyChunkSnapshotCodec;
+import gcewing.prospecting.survey.SurveyOreSelection;
+import gcewing.prospecting.survey.SurveyOreSelectionCodec;
+import gcewing.prospecting.survey.SurveyOreSelectionState;
 import gcewing.prospecting.survey.network.SurveyChunkNetworkProtocol;
 import gcewing.prospecting.survey.network.SurveyChunkSnapshotCache;
 
@@ -28,6 +31,8 @@ public final class SurveyChunkClientHandler {
     private final SurveyChunkSnapshotCache cache = new SurveyChunkSnapshotCache();
     private final ConcurrentLinkedQueue<Request> requests = new ConcurrentLinkedQueue<Request>();
     private final ConcurrentLinkedQueue<ReceivedEvent> receivedEvents = new ConcurrentLinkedQueue<ReceivedEvent>();
+    private final ConcurrentLinkedQueue<SurveyOreSelectionState> receivedSelectionStates = new ConcurrentLinkedQueue<SurveyOreSelectionState>();
+    private SurveyOreSelectionState selectionState;
 
     private SurveyChunkClientHandler() {}
 
@@ -67,7 +72,41 @@ public final class SurveyChunkClientHandler {
         receivedEvents.add(ReceivedEvent.forReset());
     }
 
+    @ClientMessageHandler(SurveyChunkNetworkProtocol.SELECTION_STATE_MESSAGE)
+    public void onSelectionStateReceived(ChannelInput input) {
+        try {
+            receivedSelectionStates.add(SurveyOreSelectionCodec.readState(input));
+        } catch (IOException | RuntimeException exception) {
+            LOG.error("Could not read survey ore selection state", exception);
+        }
+    }
+
+    public void requestSelectionState() {
+        selectionState = null;
+        receivedSelectionStates.clear();
+        ProspectingCraft.channel.openServer(SurveyChunkNetworkProtocol.SELECTION_REQUEST_MESSAGE)
+            .close();
+    }
+
+    public SurveyOreSelectionState getSelectionState() {
+        return selectionState;
+    }
+
+    public void updateSelection(SurveyOreSelection selection) {
+        try {
+            ChannelOutput output = ProspectingCraft.channel
+                .openServer(SurveyChunkNetworkProtocol.SELECTION_UPDATE_MESSAGE);
+            SurveyOreSelectionCodec.writeSelection(output, selection);
+            output.close();
+        } catch (IOException | RuntimeException exception) {
+            LOG.error("Could not update survey ore selection", exception);
+        }
+    }
+
     public void processQueues() {
+        SurveyOreSelectionState receivedState;
+        while ((receivedState = receivedSelectionStates.poll()) != null) selectionState = receivedState;
+
         boolean surveyDataChanged = false;
         boolean fullCacheReset = false;
         ReceivedEvent event;
@@ -97,6 +136,8 @@ public final class SurveyChunkClientHandler {
         cache.clear();
         requests.clear();
         receivedEvents.clear();
+        receivedSelectionStates.clear();
+        selectionState = null;
         OreSurveyLayerManager.INSTANCE.clearFullCache();
     }
 

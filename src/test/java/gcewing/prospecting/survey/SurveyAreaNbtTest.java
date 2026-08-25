@@ -46,6 +46,48 @@ public class SurveyAreaNbtTest {
         assertFalse(restored.isSurveyed(-64, 33));
     }
 
+    @Test
+    public void oldNetherOreNamesAreGroupedWhenLoaded() {
+        SurveyArea original = new SurveyArea(0, 0, 0, 1, 1);
+        original.recordOre(0, 0, "Uranium", 3);
+        NBTTagCompound nbt = SurveyAreaNbt.write(original);
+        nbt.getTagList("columns", 10)
+            .getCompoundTagAt(0)
+            .getTagList("ores", 10)
+            .getCompoundTagAt(0)
+            .setString("name", "NetherUranium");
+
+        SurveyArea restored = SurveyAreaNbt.read(nbt);
+
+        assertEquals(
+            3,
+            restored.getColumn(0, 0)
+                .getOreCount("Uranium"));
+        assertEquals(
+            "Uranium",
+            restored.getColumn(0, 0)
+                .getDominantOreName());
+    }
+
+    @Test
+    public void oldVolcanicOreEntriesAreIgnoredWhenLoaded() {
+        SurveyArea original = new SurveyArea(0, 0, 0, 1, 1);
+        original.recordOre(0, 0, "Iron", 3);
+        NBTTagCompound nbt = SurveyAreaNbt.write(original);
+        nbt.getTagList("columns", 10)
+            .getCompoundTagAt(0)
+            .getTagList("ores", 10)
+            .getCompoundTagAt(0)
+            .setString("name", "Volcanic");
+
+        SurveyArea restored = SurveyAreaNbt.read(nbt);
+
+        assertTrue(restored.isSurveyed(0, 0));
+        assertTrue(
+            restored.getColumn(0, 0)
+                .isEmpty());
+    }
+
     @Test(expected = IllegalArgumentException.class)
     public void rejectsUnknownFormatVersions() {
         NBTTagCompound nbt = new NBTTagCompound();

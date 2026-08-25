@@ -6,6 +6,9 @@ public final class SurveyChunkNetworkProtocol {
     public static final String RESPONSE_MESSAGE = "surveyChunk";
     public static final String INVALIDATION_MESSAGE = "invalidateSurveyChunks";
     public static final String RESET_MESSAGE = "resetSurveyChunks";
+    public static final String SELECTION_REQUEST_MESSAGE = "requestSurveyOreSelection";
+    public static final String SELECTION_STATE_MESSAGE = "surveyOreSelection";
+    public static final String SELECTION_UPDATE_MESSAGE = "updateSurveyOreSelection";
 
     private static final int MAX_ABSOLUTE_CHUNK_COORDINATE = 1_875_000;
     private static final int MAX_INVALIDATION_CHUNK_SPAN = 16;

@@ -66,12 +66,14 @@ public class SurveyArea {
     public void recordOre(int x, int z, String oreName, int amount) {
         int index = getRequiredIndex(x, z);
         surveyedColumns.set(index);
+        String canonicalName = OreNameNormalizer.normalizeCanonicalName(oreName);
+        if (canonicalName == null) return;
         SurveyColumn column = oreColumns.get(index);
         if (column == null) {
             column = new SurveyColumn();
             oreColumns.put(index, column);
         }
-        column.addOre(oreName, amount);
+        column.addOre(canonicalName, amount);
     }
 
     public boolean isSurveyed(int x, int z) {

@@ -1,5 +1,7 @@
 package gcewing.prospecting.client.map;
 
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StatCollector;
 
@@ -23,6 +25,14 @@ public class OreSurveyButtonManager extends ButtonManager {
 
     @Override
     public String getButtonText() {
-        return StatCollector.translateToLocal("prospectingcraft.map.ore_survey");
+        return StatCollector.translateToLocal("prospectingcraft.map.ore_survey.tooltip");
+    }
+
+    @Override
+    public void toggle() {
+        if (GuiScreen.isShiftKeyDown()) {
+            Minecraft minecraft = Minecraft.getMinecraft();
+            minecraft.displayGuiScreen(new OreSurveySelectionScreen(minecraft.currentScreen));
+        } else super.toggle();
     }
 }

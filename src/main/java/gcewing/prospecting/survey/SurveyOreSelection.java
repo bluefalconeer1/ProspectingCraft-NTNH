@@ -34,7 +34,7 @@ public final class SurveyOreSelection {
         for (String oreName : selectedOreNames) {
             if (oreName == null) continue;
             String normalizedName = normalize(oreName);
-            if (!normalizedName.isEmpty()) normalizedNames.add(normalizedName);
+            if (normalizedName != null && !normalizedName.isEmpty()) normalizedNames.add(normalizedName);
         }
         return new SurveyOreSelection(Mode.CUSTOM, Collections.unmodifiableSet(normalizedNames));
     }
@@ -44,7 +44,9 @@ public final class SurveyOreSelection {
     }
 
     public boolean includes(String oreName) {
-        return mode == Mode.SHOW_ALL || oreName != null && selectedOreNames.contains(normalize(oreName));
+        if (oreName == null) return false;
+        String normalizedName = normalize(oreName);
+        return normalizedName != null && (mode == Mode.SHOW_ALL || selectedOreNames.contains(normalizedName));
     }
 
     public Set<String> getSelectedOreNames() {
@@ -52,7 +54,7 @@ public final class SurveyOreSelection {
     }
 
     private static String normalize(String oreName) {
-        return oreName.trim()
-            .toLowerCase(Locale.ROOT);
+        String canonicalName = OreNameNormalizer.normalizeCanonicalName(oreName.trim());
+        return canonicalName == null ? null : canonicalName.toLowerCase(Locale.ROOT);
     }
 }

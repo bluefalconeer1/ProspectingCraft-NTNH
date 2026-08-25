@@ -9,7 +9,9 @@ import java.util.Set;
 public final class OreNameNormalizer {
 
     private static final String ORE_PREFIX = "ore";
+    private static final String NETHER_PREFIX = "Nether";
     private static final Map<String, String> MATERIAL_ALIASES = createMaterialAliases();
+    private static final Set<String> EXCLUDED_MATERIAL_NAMES = Collections.singleton("Volcanic");
 
     private OreNameNormalizer() {}
 
@@ -17,8 +19,17 @@ public final class OreNameNormalizer {
         if (oreDictionaryName == null || !oreDictionaryName.startsWith(ORE_PREFIX)) return null;
         String materialName = oreDictionaryName.substring(ORE_PREFIX.length());
         if (materialName.isEmpty() || !Character.isUpperCase(materialName.charAt(0))) return null;
+        return normalizeCanonicalName(materialName);
+    }
+
+    public static String normalizeCanonicalName(String materialName) {
+        if (materialName == null) return null;
+        if (materialName.startsWith(NETHER_PREFIX) && materialName.length() > NETHER_PREFIX.length()
+            && Character.isUpperCase(materialName.charAt(NETHER_PREFIX.length())))
+            materialName = materialName.substring(NETHER_PREFIX.length());
         String alias = MATERIAL_ALIASES.get(materialName);
-        return alias == null ? materialName : alias;
+        String canonicalName = alias == null ? materialName : alias;
+        return EXCLUDED_MATERIAL_NAMES.contains(canonicalName) ? null : canonicalName;
     }
 
     public static Set<String> normalizeAll(Iterable<String> oreDictionaryNames) {

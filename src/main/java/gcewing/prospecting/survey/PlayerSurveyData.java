@@ -75,6 +75,26 @@ public class PlayerSurveyData extends WorldSavedData {
         return Collections.unmodifiableSet(oreNames);
     }
 
+    public SurveyOreSelection canonicalizeOreSelection(SurveyOreSelection requestedSelection) {
+        return canonicalizeOreSelection(requestedSelection, getDiscoveredOreNames());
+    }
+
+    public SurveyOreSelection canonicalizeOreSelection(SurveyOreSelection requestedSelection,
+        Iterable<String> selectableOreNames) {
+        if (requestedSelection == null) throw new IllegalArgumentException("Survey ore selection must not be null");
+        if (selectableOreNames == null) throw new IllegalArgumentException("Selectable ore names must not be null");
+        if (requestedSelection.getMode() == SurveyOreSelection.Mode.SHOW_ALL) return SurveyOreSelection.showAll();
+
+        List<String> resolvedNames = new ArrayList<String>();
+        for (String requestedName : requestedSelection.getSelectedOreNames()) {
+            String resolvedName = findIgnoringCase(selectableOreNames, requestedName);
+            if (resolvedName == null)
+                throw new IllegalArgumentException("Ore is not a selectable registered block ore: " + requestedName);
+            resolvedNames.add(resolvedName);
+        }
+        return SurveyOreSelection.custom(resolvedNames);
+    }
+
     public void addSurveyArea(SurveyArea surveyArea) {
         if (surveyArea == null) throw new IllegalArgumentException("Survey area must not be null");
         if (getSurveyArea(surveyArea.getSurveyId()) != null)
@@ -142,6 +162,11 @@ public class PlayerSurveyData extends WorldSavedData {
         NBTTagList selectedOres = new NBTTagList();
         for (String oreName : selection.getSelectedOreNames()) selectedOres.appendTag(new NBTTagString(oreName));
         nbt.setTag("selectedOres", selectedOres);
+    }
+
+    private static String findIgnoringCase(Iterable<String> names, String requestedName) {
+        for (String name : names) if (name.equalsIgnoreCase(requestedName)) return name;
+        return null;
     }
 
     private static UUID parseOwnerId(String dataName) {
