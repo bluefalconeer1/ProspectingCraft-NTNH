@@ -23,6 +23,7 @@ import com.github.bluefalconeer1.prospectingcraft.Tags;
 import cpw.mods.fml.common.*;
 import cpw.mods.fml.common.event.*;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import gcewing.prospecting.survey.ProspectingSurveyCommand;
 
 @Mod(
     modid = Info.modID,
@@ -78,6 +79,11 @@ public class ProspectingCraft extends BaseMod<ProspectingCraftClient> {
     public void postInit(FMLPostInitializationEvent e) {
         super.postInit(e);
         SeismicRecorderTE.init();
+    }
+
+    @Mod.EventHandler
+    public void serverStarting(FMLServerStartingEvent event) {
+        event.registerServerCommand(new ProspectingSurveyCommand());
     }
 
     @Override

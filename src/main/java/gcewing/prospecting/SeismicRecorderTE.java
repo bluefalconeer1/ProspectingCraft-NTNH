@@ -25,6 +25,10 @@ import net.minecraftforge.oredict.OreDictionary;
 
 import com.google.common.primitives.Ints;
 
+import gcewing.prospecting.survey.OreDictionaryResolver;
+import gcewing.prospecting.survey.PlayerSurveyData;
+import gcewing.prospecting.survey.SurveyArea;
+
 public class SeismicRecorderTE extends BaseTileInventory implements ITickable {
 
     protected static int paperSlot = 0, blackInkSlot = 1, magentaInkSlot = 2, yellowInkSlot = 3, cyanInkSlot = 4,
@@ -44,7 +48,8 @@ public class SeismicRecorderTE extends BaseTileInventory implements ITickable {
         OOI0(true, "Out of Black Ink"),
         OOI1(true, "Out of Magenta Ink"),
         OOI2(true, "Out of Yellow Ink"),
-        OOI3(true, "Out of Cyan Ink");
+        OOI3(true, "Out of Cyan Ink"),
+        OWN(true, "Open Surveyor to claim ownership");
 
         public boolean error;
         public String message;
@@ -68,6 +73,7 @@ public class SeismicRecorderTE extends BaseTileInventory implements ITickable {
     protected boolean geophonesOkay;
     protected int linkTimer;
     protected UUID ownerId;
+    protected UUID activeSurveyId;
 
     public SeismicRecorderTE() {
         super();
@@ -90,6 +96,7 @@ public class SeismicRecorderTE extends BaseTileInventory implements ITickable {
         numGeophones = nbt.getInteger("numGeophones");
         geophonesOkay = nbt.getBoolean("geophonesOkay");
         ownerId = readUuid(nbt, "ownerId");
+        activeSurveyId = readUuid(nbt, "activeSurveyId");
     }
 
     @Override
@@ -103,6 +110,7 @@ public class SeismicRecorderTE extends BaseTileInventory implements ITickable {
         nbt.setInteger("numGeophones", numGeophones);
         nbt.setBoolean("geophonesOkay", geophonesOkay);
         if (ownerId != null) nbt.setString("ownerId", ownerId.toString());
+        if (activeSurveyId != null) nbt.setString("activeSurveyId", activeSurveyId.toString());
     }
 
     protected UUID readUuid(NBTTagCompound nbt, String key) {
@@ -172,6 +180,7 @@ public class SeismicRecorderTE extends BaseTileInventory implements ITickable {
     }
 
     public ReadyStatus getReadyStatus() {
+        if (ownerId == null) return ReadyStatus.OWN;
         if (hasResult()) return ReadyStatus.FIN;
         if (activated) return ReadyStatus.RUN;
         if (numGeophones < 3) return ReadyStatus.NEG;
@@ -208,6 +217,16 @@ public class SeismicRecorderTE extends BaseTileInventory implements ITickable {
 
     protected void beginScan() {
         // System.out.printf("SeismicRecorderTE.beginScan\n");
+        if (ownerId == null) return;
+        SurveyArea surveyArea = new SurveyArea(
+            BaseUtils.getWorldDimensionId(worldObj),
+            getX() - 64,
+            getZ() - 64,
+            128,
+            128);
+        PlayerSurveyData.get(worldObj, ownerId)
+            .addSurveyArea(surveyArea);
+        activeSurveyId = surveyArea.getSurveyId();
         fireGunpowder();
         activated = true;
         phase = 0;
@@ -217,7 +236,7 @@ public class SeismicRecorderTE extends BaseTileInventory implements ITickable {
         data.zCenter = getZ();
         data.scale = 0;
         data.dimension = BaseUtils.getWorldDimensionId(worldObj);
-        markForUpdate();
+        markChanged();
     }
 
     protected void fireGunpowder() {
@@ -247,8 +266,9 @@ public class SeismicRecorderTE extends BaseTileInventory implements ITickable {
                         useInk();
                         produceResult();
                     }
+                    activeSurveyId = null;
                 }
-                markForUpdate();
+                markChanged();
             }
         }
     }
@@ -311,6 +331,8 @@ public class SeismicRecorderTE extends BaseTileInventory implements ITickable {
     protected void scanRow(int j) {
         int r = 64;
         MapData data = getMapData();
+        PlayerSurveyData playerSurveyData = getPlayerSurveyData();
+        SurveyArea surveyArea = playerSurveyData == null ? null : playerSurveyData.getSurveyArea(activeSurveyId);
         int x0 = data.xCenter;
         int z0 = data.zCenter;
         int z = z0 - r + j;
@@ -318,9 +340,11 @@ public class SeismicRecorderTE extends BaseTileInventory implements ITickable {
         World world = worldObj;
         for (int i = 0; i < 128; i++) {
             int x = x0 - r + i;
-            data.colors[i0 + i] = scanCoords(world, x, z);
+            if (world.getChunkProvider()
+                .chunkExists(x >> 4, z >> 4)) data.colors[i0 + i] = scanCoords(world, x, z, surveyArea);
         }
         data.markDirty();
+        if (playerSurveyData != null) playerSurveyData.markDirty();
     }
 
     protected void produceResult() {
@@ -334,7 +358,8 @@ public class SeismicRecorderTE extends BaseTileInventory implements ITickable {
         setInventorySlotContents(resultSlot, stack);
     }
 
-    protected byte scanCoords(World world, int x, int z) {
+    protected byte scanCoords(World world, int x, int z, SurveyArea surveyArea) {
+        if (surveyArea != null) surveyArea.markSurveyed(x, z);
         int bestPriority = 0;
         float maxHardness = -1;
         int bestByte = 0;
@@ -348,6 +373,8 @@ public class SeismicRecorderTE extends BaseTileInventory implements ITickable {
             int b = -1;
             if (item != null) {
                 stack = new ItemStack(item, 1, meta);
+                if (surveyArea != null) for (String oreName : OreDictionaryResolver.getCanonicalOreNames(stack))
+                    surveyArea.recordOre(x, z, oreName, 1);
                 // System.out.printf("SeismicRecorderTE.scanCoords: (%s, %s) block %s stack %s\n", x, z, block, stack);
                 b = getMapDataByteForStack(stack);
             }
@@ -368,6 +395,11 @@ public class SeismicRecorderTE extends BaseTileInventory implements ITickable {
         // x, z, bestPriority, maxHardness, bestStack, bestByte);
         if (!colorMode) bestByte = colorByteToGreyByte(bestByte);
         return (byte) bestByte;
+    }
+
+    protected PlayerSurveyData getPlayerSurveyData() {
+        if (ownerId == null) return null;
+        return PlayerSurveyData.get(worldObj, ownerId);
     }
 
     public static boolean itemStackIsOfInterest(ItemStack stack) {

@@ -41,6 +41,10 @@ public class SeismicRecorderBlock extends BaseBlock<SeismicRecorderTE> {
     @Override
     public boolean onBlockActivated(World world, BlockPos pos, IBlockState state, EntityPlayer player, EnumFacing side,
         float cx, float cy, float cz) {
+        if (!world.isRemote) {
+            SeismicRecorderTE te = getTileEntity(world, pos);
+            if (te != null && te.getOwnerId() == null) te.setOwnerId(player.getUniqueID());
+        }
         ProspectingCraft.mod.openGui(player, ProspectingCraft.seismicRecorderGui, world, pos);
         return true;
     }
