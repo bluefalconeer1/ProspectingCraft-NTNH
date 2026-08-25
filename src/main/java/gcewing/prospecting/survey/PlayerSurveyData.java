@@ -33,7 +33,8 @@ public class PlayerSurveyData extends WorldSavedData {
     public static PlayerSurveyData get(World world, UUID ownerId) {
         if (world.isRemote) throw new IllegalArgumentException("Player survey data is server-only");
         String dataName = getDataName(ownerId);
-        MapStorage storage = world.perWorldStorage;
+        // SurveyArea records its dimension, so keep one player database shared by every dimension.
+        MapStorage storage = world.mapStorage;
         PlayerSurveyData data = (PlayerSurveyData) storage.loadData(PlayerSurveyData.class, dataName);
         if (data == null) {
             data = new PlayerSurveyData(dataName);

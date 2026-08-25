@@ -60,6 +60,32 @@ public class PlayerSurveyDataTest {
     }
 
     @Test
+    public void onePlayerDatabaseRetainsSurveysFromMultipleDimensions() {
+        PlayerSurveyData original = newData(OWNER_ID);
+        SurveyArea overworld = new SurveyArea(0, 10, 20, 1, 1);
+        overworld.recordOre(10, 20, "Iron", 3);
+        original.addSurveyArea(overworld);
+        SurveyArea nether = new SurveyArea(-1, 10, 20, 1, 1);
+        nether.recordOre(10, 20, "Gold", 2);
+        original.addSurveyArea(nether);
+
+        NBTTagCompound nbt = new NBTTagCompound();
+        original.writeToNBT(nbt);
+        PlayerSurveyData restored = newData(OWNER_ID);
+        restored.readFromNBT(nbt);
+
+        assertEquals(
+            3,
+            restored.getColumn(0, 10, 20)
+                .getOreCount("Iron"));
+        assertEquals(
+            2,
+            restored.getColumn(-1, 10, 20)
+                .getOreCount("Gold"));
+        assertEquals(2, restored.getSurveyAreaCount());
+    }
+
+    @Test
     public void oldSurveyDataWithoutSelectionDefaultsToShowAll() {
         PlayerSurveyData original = newData(OWNER_ID);
         NBTTagCompound nbt = new NBTTagCompound();
