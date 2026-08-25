@@ -1,5 +1,7 @@
 package gcewing.prospecting.survey;
 
+import java.util.Arrays;
+
 public class SurveyChunkSnapshot {
 
     public static final int CHUNK_WIDTH = 16;
@@ -10,10 +12,11 @@ public class SurveyChunkSnapshot {
     private final int chunkZ;
     private final SurveyColumnSnapshot[] columns = new SurveyColumnSnapshot[COLUMN_COUNT];
 
-    private SurveyChunkSnapshot(int dimensionId, int chunkX, int chunkZ) {
+    SurveyChunkSnapshot(int dimensionId, int chunkX, int chunkZ) {
         this.dimensionId = dimensionId;
         this.chunkX = chunkX;
         this.chunkZ = chunkZ;
+        Arrays.fill(columns, SurveyColumnSnapshot.UNSURVEYED);
     }
 
     public static SurveyChunkSnapshot from(PlayerSurveyData data, int dimensionId, int chunkX, int chunkZ) {
@@ -42,6 +45,11 @@ public class SurveyChunkSnapshot {
 
     public SurveyColumnSnapshot getColumn(int localX, int localZ) {
         return columns[getRequiredIndex(localX, localZ)];
+    }
+
+    void setColumn(int localX, int localZ, SurveyColumnSnapshot column) {
+        if (column == null) throw new IllegalArgumentException("Survey column snapshot must not be null");
+        columns[getRequiredIndex(localX, localZ)] = column;
     }
 
     private static int getRequiredIndex(int localX, int localZ) {

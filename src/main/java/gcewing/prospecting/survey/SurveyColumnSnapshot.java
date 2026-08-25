@@ -44,11 +44,21 @@ public class SurveyColumnSnapshot {
         String dominantOreName = column.getDominantOreName();
         List<String> topOreNames = Collections
             .unmodifiableList(new ArrayList<String>(column.getTopOreNames(TOP_ORE_LIMIT)));
-        return new SurveyColumnSnapshot(
-            State.ORE_BEARING,
-            dominantOreName,
-            column.getOreCount(dominantOreName),
-            topOreNames);
+        return oreBearing(column.getOreCount(dominantOreName), topOreNames);
+    }
+
+    static SurveyColumnSnapshot oreBearing(int dominantOreCount, List<String> topOreNames) {
+        if (dominantOreCount <= 0) throw new IllegalArgumentException("Dominant ore count must be positive");
+        if (topOreNames == null || topOreNames.isEmpty() || topOreNames.size() > TOP_ORE_LIMIT)
+            throw new IllegalArgumentException("Ore-bearing columns require between one and five ore names");
+        List<String> names = new ArrayList<String>(topOreNames.size());
+        for (String oreName : topOreNames) {
+            if (oreName == null || oreName.isEmpty()) throw new IllegalArgumentException("Ore name must not be empty");
+            if (names.contains(oreName)) throw new IllegalArgumentException("Ore names must be unique");
+            names.add(oreName);
+        }
+        List<String> immutableNames = Collections.unmodifiableList(names);
+        return new SurveyColumnSnapshot(State.ORE_BEARING, immutableNames.get(0), dominantOreCount, immutableNames);
     }
 
     public State getState() {
