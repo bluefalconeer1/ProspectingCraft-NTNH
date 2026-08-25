@@ -17,3 +17,4 @@ item.prospectingcraft:eyeglass.name=Prospector's Eyeglass
 item.prospectingcraft:magnetometer.name=Magnetometer
 item.prospectingcraft:naquadah_detector.name=Naquadah Detector
 itemGroup.prospectingcraft:all=ProspectingCraft
+prospectingcraft.map.ore_survey=Ore Survey

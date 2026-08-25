@@ -8,12 +8,23 @@ package gcewing.prospecting;
 
 import net.minecraftforge.client.MinecraftForgeClient;
 
+import com.gtnewhorizons.navigator.api.NavigatorApi;
+
+import cpw.mods.fml.common.event.FMLInitializationEvent;
+import gcewing.prospecting.client.map.OreSurveyLayerManager;
+
 public class ProspectingCraftClient extends BaseModClient<ProspectingCraft> {
 
     public ProspectingCraftClient(ProspectingCraft mod) {
         super(mod);
         debugModelRegistration = true;
 
+    }
+
+    @Override
+    public void init(FMLInitializationEvent event) {
+        super.init(event);
+        NavigatorApi.registerLayerManager(OreSurveyLayerManager.INSTANCE);
     }
 
     @Override
