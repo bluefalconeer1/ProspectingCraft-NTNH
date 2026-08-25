@@ -33,8 +33,15 @@ public class SurveyColumn {
     }
 
     public List<String> getTopOreNames(int limit) {
+        return getTopOreNames(limit, SurveyOreSelection.showAll());
+    }
+
+    public List<String> getTopOreNames(int limit, SurveyOreSelection selection) {
         if (limit < 0) throw new IllegalArgumentException("Limit must not be negative");
-        List<Map.Entry<String, Integer>> entries = new ArrayList<Map.Entry<String, Integer>>(oreCounts.entrySet());
+        if (selection == null) throw new IllegalArgumentException("Survey ore selection must not be null");
+        List<Map.Entry<String, Integer>> entries = new ArrayList<Map.Entry<String, Integer>>();
+        for (Map.Entry<String, Integer> entry : oreCounts.entrySet())
+            if (selection.includes(entry.getKey())) entries.add(entry);
         Collections.sort(entries, new Comparator<Map.Entry<String, Integer>>() {
 
             @Override

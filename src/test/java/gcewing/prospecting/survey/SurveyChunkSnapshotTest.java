@@ -73,6 +73,50 @@ public class SurveyChunkSnapshotTest {
                 .getDominantOreName());
     }
 
+    @Test
+    public void recalculatesVisibleRankingFromThePlayersSelectionWithoutChangingRawData() {
+        PlayerSurveyData data = newData();
+        SurveyArea area = new SurveyArea(0, 0, 0, 1, 1);
+        area.recordOre(0, 0, "Coal", 10);
+        area.recordOre(0, 0, "Iron", 4);
+        area.recordOre(0, 0, "Gold", 3);
+        data.addSurveyArea(area);
+
+        SurveyChunkSnapshot snapshot = SurveyChunkSnapshot
+            .from(data, 0, 0, 0, SurveyOreSelection.custom(Arrays.asList("iron")));
+        SurveyColumnSnapshot column = snapshot.getColumn(0, 0);
+
+        assertEquals(SurveyColumnSnapshot.State.ORE_BEARING, column.getState());
+        assertEquals("Iron", column.getDominantOreName());
+        assertEquals(4, column.getDominantOreCount());
+        assertEquals(Arrays.asList("Iron"), column.getTopOreNames());
+        assertEquals(
+            10,
+            data.getColumn(0, 0, 0)
+                .getOreCount("Coal"));
+        assertEquals(
+            3,
+            data.getColumn(0, 0, 0)
+                .getOreCount("Gold"));
+    }
+
+    @Test
+    public void treatsAColumnWithoutAnySelectedOresAsSurveyedEmpty() {
+        PlayerSurveyData data = newData();
+        SurveyArea area = new SurveyArea(0, 0, 0, 1, 1);
+        area.recordOre(0, 0, "Coal", 10);
+        data.addSurveyArea(area);
+
+        SurveyChunkSnapshot snapshot = SurveyChunkSnapshot
+            .from(data, 0, 0, 0, SurveyOreSelection.custom(Arrays.asList("Iron")));
+
+        assertSame(SurveyColumnSnapshot.SURVEYED_EMPTY, snapshot.getColumn(0, 0));
+        assertEquals(
+            10,
+            data.getColumn(0, 0, 0)
+                .getOreCount("Coal"));
+    }
+
     @Test(expected = IllegalArgumentException.class)
     public void rejectsColumnsOutsideTheChunk() {
         SurveyChunkSnapshot.from(newData(), 0, 0, 0)

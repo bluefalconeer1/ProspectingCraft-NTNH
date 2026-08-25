@@ -5,6 +5,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Arrays;
 import java.util.UUID;
 
 import net.minecraft.nbt.NBTTagCompound;
@@ -22,6 +23,7 @@ public class PlayerSurveyDataTest {
         area.recordOre(10, 20, "Nickel", 4);
         area.markSurveyed(11, 20);
         original.addSurveyArea(area);
+        original.setOreSelection(SurveyOreSelection.custom(Arrays.asList("Iron", "Gold")));
 
         NBTTagCompound nbt = new NBTTagCompound();
         original.writeToNBT(nbt);
@@ -29,6 +31,19 @@ public class PlayerSurveyDataTest {
         restored.readFromNBT(nbt);
 
         assertEquals(OWNER_ID, restored.getOwnerId());
+        assertEquals(
+            SurveyOreSelection.Mode.CUSTOM,
+            restored.getOreSelection()
+                .getMode());
+        assertTrue(
+            restored.getOreSelection()
+                .includes("Iron"));
+        assertTrue(
+            restored.getOreSelection()
+                .includes("Gold"));
+        assertFalse(
+            restored.getOreSelection()
+                .includes("Lignite"));
         assertEquals(1, restored.getSurveyAreaCount());
         assertEquals(
             area.getSurveyId(),
@@ -42,6 +57,26 @@ public class PlayerSurveyDataTest {
             restored.getColumn(7, 11, 20)
                 .isEmpty());
         assertNull(restored.getColumn(0, 10, 20));
+    }
+
+    @Test
+    public void oldSurveyDataWithoutSelectionDefaultsToShowAll() {
+        PlayerSurveyData original = newData(OWNER_ID);
+        NBTTagCompound nbt = new NBTTagCompound();
+        original.writeToNBT(nbt);
+        nbt.removeTag("customOreSelection");
+        nbt.removeTag("selectedOres");
+
+        PlayerSurveyData restored = newData(OWNER_ID);
+        restored.readFromNBT(nbt);
+
+        assertEquals(
+            SurveyOreSelection.Mode.SHOW_ALL,
+            restored.getOreSelection()
+                .getMode());
+        assertTrue(
+            restored.getOreSelection()
+                .includes("Lignite"));
     }
 
     @Test
@@ -65,6 +100,24 @@ public class PlayerSurveyDataTest {
             data.getColumn(0, 1, 0)
                 .getOreCount("Copper"));
         assertFalse(data.isSurveyed(0, 2, 0));
+    }
+
+    @Test
+    public void reportsUniqueDiscoveredOreNamesIgnoringCase() {
+        PlayerSurveyData data = newData(OWNER_ID);
+        SurveyArea first = new SurveyArea(0, 0, 0, 2, 1);
+        first.recordOre(0, 0, "Iron", 3);
+        first.recordOre(1, 0, "Lignite", 2);
+        data.addSurveyArea(first);
+
+        SurveyArea second = new SurveyArea(0, 10, 10, 2, 1);
+        second.recordOre(10, 10, "iron", 1);
+        second.recordOre(11, 10, "Gold", 4);
+        data.addSurveyArea(second);
+
+        assertEquals(
+            Arrays.asList("Gold", "Iron", "Lignite"),
+            new java.util.ArrayList<String>(data.getDiscoveredOreNames()));
     }
 
     @Test(expected = IllegalArgumentException.class)

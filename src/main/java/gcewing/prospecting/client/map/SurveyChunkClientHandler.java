@@ -62,16 +62,27 @@ public final class SurveyChunkClientHandler {
         }
     }
 
+    @ClientMessageHandler(SurveyChunkNetworkProtocol.RESET_MESSAGE)
+    public void onChunksReset(ChannelInput input) {
+        receivedEvents.add(ReceivedEvent.forReset());
+    }
+
     public void processQueues() {
         boolean surveyDataChanged = false;
+        boolean fullCacheReset = false;
         ReceivedEvent event;
         while ((event = receivedEvents.poll()) != null) {
-            if (event.snapshot != null) cache.accept(event.snapshot);
+            if (event.reset) {
+                cache.clear();
+                requests.clear();
+                fullCacheReset = true;
+            } else if (event.snapshot != null) cache.accept(event.snapshot);
             else cache
                 .invalidate(event.dimensionId, event.minChunkX, event.minChunkZ, event.maxChunkX, event.maxChunkZ);
             surveyDataChanged = true;
         }
-        if (surveyDataChanged) OreSurveyLayerManager.INSTANCE.forceRefresh();
+        if (fullCacheReset) OreSurveyLayerManager.INSTANCE.clearFullCache();
+        else if (surveyDataChanged) OreSurveyLayerManager.INSTANCE.forceRefresh();
 
         Minecraft minecraft = Minecraft.getMinecraft();
         if (minecraft.thePlayer == null || minecraft.theWorld == null) return;
@@ -118,24 +129,30 @@ public final class SurveyChunkClientHandler {
         private final int minChunkZ;
         private final int maxChunkX;
         private final int maxChunkZ;
+        private final boolean reset;
 
         private ReceivedEvent(SurveyChunkSnapshot snapshot, int dimensionId, int minChunkX, int minChunkZ,
-            int maxChunkX, int maxChunkZ) {
+            int maxChunkX, int maxChunkZ, boolean reset) {
             this.snapshot = snapshot;
             this.dimensionId = dimensionId;
             this.minChunkX = minChunkX;
             this.minChunkZ = minChunkZ;
             this.maxChunkX = maxChunkX;
             this.maxChunkZ = maxChunkZ;
+            this.reset = reset;
         }
 
         private static ReceivedEvent forSnapshot(SurveyChunkSnapshot snapshot) {
-            return new ReceivedEvent(snapshot, 0, 0, 0, 0, 0);
+            return new ReceivedEvent(snapshot, 0, 0, 0, 0, 0, false);
         }
 
         private static ReceivedEvent forInvalidation(int dimensionId, int minChunkX, int minChunkZ, int maxChunkX,
             int maxChunkZ) {
-            return new ReceivedEvent(null, dimensionId, minChunkX, minChunkZ, maxChunkX, maxChunkZ);
+            return new ReceivedEvent(null, dimensionId, minChunkX, minChunkZ, maxChunkX, maxChunkZ, false);
+        }
+
+        private static ReceivedEvent forReset() {
+            return new ReceivedEvent(null, 0, 0, 0, 0, 0, true);
         }
     }
 }

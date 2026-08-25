@@ -38,12 +38,17 @@ public class SurveyColumnSnapshot {
     }
 
     public static SurveyColumnSnapshot from(SurveyColumn column) {
-        if (column == null) return UNSURVEYED;
-        if (column.isEmpty()) return SURVEYED_EMPTY;
+        return from(column, SurveyOreSelection.showAll());
+    }
 
-        String dominantOreName = column.getDominantOreName();
+    public static SurveyColumnSnapshot from(SurveyColumn column, SurveyOreSelection selection) {
+        if (column == null) return UNSURVEYED;
+        if (selection == null) throw new IllegalArgumentException("Survey ore selection must not be null");
+
         List<String> topOreNames = Collections
-            .unmodifiableList(new ArrayList<String>(column.getTopOreNames(TOP_ORE_LIMIT)));
+            .unmodifiableList(new ArrayList<String>(column.getTopOreNames(TOP_ORE_LIMIT, selection)));
+        if (topOreNames.isEmpty()) return SURVEYED_EMPTY;
+        String dominantOreName = topOreNames.get(0);
         return oreBearing(column.getOreCount(dominantOreName), topOreNames);
     }
 

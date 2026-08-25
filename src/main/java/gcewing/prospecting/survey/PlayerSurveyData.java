@@ -1,11 +1,15 @@
 package gcewing.prospecting.survey;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.UUID;
 
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+import net.minecraft.nbt.NBTTagString;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldSavedData;
 import net.minecraft.world.storage.MapStorage;
@@ -14,10 +18,12 @@ public class PlayerSurveyData extends WorldSavedData {
 
     private static final String DATA_NAME_PREFIX = "prospectingcraft_surveys_";
     private static final int FORMAT_VERSION = 1;
+    private static final int STRING_TAG_ID = 8;
     private static final int COMPOUND_TAG_ID = 10;
 
     private final UUID ownerId;
     private final List<SurveyArea> surveyAreas = new ArrayList<SurveyArea>();
+    private SurveyOreSelection oreSelection = SurveyOreSelection.showAll();
 
     public PlayerSurveyData(String dataName) {
         super(dataName);
@@ -47,6 +53,26 @@ public class PlayerSurveyData extends WorldSavedData {
 
     public int getSurveyAreaCount() {
         return surveyAreas.size();
+    }
+
+    public SurveyOreSelection getOreSelection() {
+        return oreSelection;
+    }
+
+    public void setOreSelection(SurveyOreSelection oreSelection) {
+        if (oreSelection == null) throw new IllegalArgumentException("Survey ore selection must not be null");
+        this.oreSelection = oreSelection;
+        markDirty();
+    }
+
+    public Set<String> getDiscoveredOreNames() {
+        Set<String> oreNames = new TreeSet<String>(String.CASE_INSENSITIVE_ORDER);
+        for (SurveyArea surveyArea : surveyAreas) for (SurveyColumn column : surveyArea.getOreColumns()
+            .values())
+            oreNames.addAll(
+                column.getOreCounts()
+                    .keySet());
+        return Collections.unmodifiableSet(oreNames);
     }
 
     public void addSurveyArea(SurveyArea surveyArea) {
@@ -85,6 +111,7 @@ public class PlayerSurveyData extends WorldSavedData {
         if (!ownerId.equals(savedOwnerId))
             throw new IllegalArgumentException("Survey data owner does not match its name");
 
+        oreSelection = readOreSelection(nbt);
         surveyAreas.clear();
         NBTTagList areas = nbt.getTagList("areas", COMPOUND_TAG_ID);
         for (int i = 0; i < areas.tagCount(); i++) surveyAreas.add(SurveyAreaNbt.read(areas.getCompoundTagAt(i)));
@@ -94,9 +121,27 @@ public class PlayerSurveyData extends WorldSavedData {
     public void writeToNBT(NBTTagCompound nbt) {
         nbt.setInteger("formatVersion", FORMAT_VERSION);
         nbt.setString("ownerId", ownerId.toString());
+        writeOreSelection(nbt, oreSelection);
         NBTTagList areas = new NBTTagList();
         for (SurveyArea surveyArea : surveyAreas) areas.appendTag(SurveyAreaNbt.write(surveyArea));
         nbt.setTag("areas", areas);
+    }
+
+    private static SurveyOreSelection readOreSelection(NBTTagCompound nbt) {
+        if (!nbt.getBoolean("customOreSelection")) return SurveyOreSelection.showAll();
+        NBTTagList selectedOres = nbt.getTagList("selectedOres", STRING_TAG_ID);
+        List<String> selectedOreNames = new ArrayList<String>(selectedOres.tagCount());
+        for (int i = 0; i < selectedOres.tagCount(); i++) selectedOreNames.add(selectedOres.getStringTagAt(i));
+        return SurveyOreSelection.custom(selectedOreNames);
+    }
+
+    private static void writeOreSelection(NBTTagCompound nbt, SurveyOreSelection selection) {
+        boolean customSelection = selection.getMode() == SurveyOreSelection.Mode.CUSTOM;
+        nbt.setBoolean("customOreSelection", customSelection);
+        if (!customSelection) return;
+        NBTTagList selectedOres = new NBTTagList();
+        for (String oreName : selection.getSelectedOreNames()) selectedOres.appendTag(new NBTTagString(oreName));
+        nbt.setTag("selectedOres", selectedOres);
     }
 
     private static UUID parseOwnerId(String dataName) {

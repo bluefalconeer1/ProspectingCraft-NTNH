@@ -20,13 +20,19 @@ public class SurveyChunkSnapshot {
     }
 
     public static SurveyChunkSnapshot from(PlayerSurveyData data, int dimensionId, int chunkX, int chunkZ) {
+        return from(data, dimensionId, chunkX, chunkZ, SurveyOreSelection.showAll());
+    }
+
+    public static SurveyChunkSnapshot from(PlayerSurveyData data, int dimensionId, int chunkX, int chunkZ,
+        SurveyOreSelection selection) {
         if (data == null) throw new IllegalArgumentException("Player survey data must not be null");
+        if (selection == null) throw new IllegalArgumentException("Survey ore selection must not be null");
         SurveyChunkSnapshot snapshot = new SurveyChunkSnapshot(dimensionId, chunkX, chunkZ);
         int minBlockX = chunkX << 4;
         int minBlockZ = chunkZ << 4;
         for (int localZ = 0; localZ < CHUNK_WIDTH; localZ++) for (int localX = 0; localX < CHUNK_WIDTH; localX++) {
             SurveyColumn column = data.getColumn(dimensionId, minBlockX + localX, minBlockZ + localZ);
-            snapshot.columns[getIndex(localX, localZ)] = SurveyColumnSnapshot.from(column);
+            snapshot.columns[getIndex(localX, localZ)] = SurveyColumnSnapshot.from(column, selection);
         }
         return snapshot;
     }

@@ -88,13 +88,23 @@ public final class SurveyChunkServerHandler {
         }
     }
 
+    public void notifySelectionChanged(EntityPlayerMP player) {
+        if (player == null) return;
+        try {
+            ProspectingCraft.channel.openPlayer(player, SurveyChunkNetworkProtocol.RESET_MESSAGE)
+                .close();
+        } catch (RuntimeException exception) {
+            LOG.error("Could not reset survey chunks after ore selection changed", exception);
+        }
+    }
+
     private void sendSnapshot(Request request) {
         EntityPlayerMP player = request.player;
         if (player.isDead || player.dimension != request.dimensionId) return;
         try {
             PlayerSurveyData playerData = PlayerSurveyData.get(player.worldObj, player.getUniqueID());
             SurveyChunkSnapshot snapshot = SurveyChunkSnapshot
-                .from(playerData, request.dimensionId, request.chunkX, request.chunkZ);
+                .from(playerData, request.dimensionId, request.chunkX, request.chunkZ, playerData.getOreSelection());
             ChannelOutput output = ProspectingCraft.channel
                 .openPlayer(player, SurveyChunkNetworkProtocol.RESPONSE_MESSAGE);
             SurveyChunkSnapshotCodec.write(output, snapshot);
