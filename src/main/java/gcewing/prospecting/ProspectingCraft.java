@@ -23,7 +23,9 @@ import com.github.bluefalconeer1.prospectingcraft.Tags;
 import cpw.mods.fml.common.*;
 import cpw.mods.fml.common.event.*;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import cpw.mods.fml.common.gameevent.TickEvent;
 import gcewing.prospecting.survey.ProspectingSurveyCommand;
+import gcewing.prospecting.survey.network.SurveyChunkServerHandler;
 
 @Mod(
     modid = Info.modID,
@@ -50,6 +52,7 @@ public class ProspectingCraft extends BaseMod<ProspectingCraftClient> {
     public ProspectingCraft() {
         super();
         mod = this;
+        channel.handlers.add(SurveyChunkServerHandler.INSTANCE);
         creativeTab = new CreativeTabs("prospectingcraft:all") {
 
             public Item getTabIconItem() {
@@ -84,6 +87,11 @@ public class ProspectingCraft extends BaseMod<ProspectingCraftClient> {
     @Mod.EventHandler
     public void serverStarting(FMLServerStartingEvent event) {
         event.registerServerCommand(new ProspectingSurveyCommand());
+    }
+
+    @SubscribeEvent
+    public void onServerTick(TickEvent.ServerTickEvent event) {
+        if (event.phase == TickEvent.Phase.END) SurveyChunkServerHandler.INSTANCE.processRequests();
     }
 
     @Override

@@ -27,4 +27,12 @@ public class OreSurveyLayerManager extends LayerManager {
     protected ILocationProvider generateLocation(int chunkX, int chunkZ, int dimensionId) {
         return new OreSurveyChunkLocation(chunkX, chunkZ, dimensionId);
     }
+
+    @Override
+    public void updateElement(ILocationProvider location) {
+        OreSurveyChunkLocation chunk = (OreSurveyChunkLocation) location;
+        chunk.setSnapshot(
+            SurveyChunkClientHandler.INSTANCE
+                .getOrRequest(chunk.getDimensionId(), chunk.getChunkX(), chunk.getChunkZ()));
+    }
 }
