@@ -1,8 +1,8 @@
-//------------------------------------------------------
+// ------------------------------------------------------
 //
-//   ProspectingCraft - Prospecting Pick Item
+// ProspectingCraft - Prospecting Pick Item
 //
-//------------------------------------------------------
+// ------------------------------------------------------
 
 package gcewing.prospecting;
 
@@ -16,9 +16,8 @@ import net.minecraft.world.*;
 public class ProspectingPickItem extends BaseItem {
 
     @Override
-    public boolean onItemUse(ItemStack stack, EntityPlayer player, World world,
-        int x, int y, int z, int side, float hitX, float hitY, float hitZ)
-    {
+    public boolean onItemUse(ItemStack stack, EntityPlayer player, World world, int x, int y, int z, int side,
+        float hitX, float hitY, float hitZ) {
         Block block = world.getBlock(x, y, z);
         if (block == Blocks.stone || block == Blocks.gravel) {
             if (!world.isRemote) {
@@ -32,9 +31,7 @@ public class ProspectingPickItem extends BaseItem {
                 BaseBlockUtils.spawnItemStackAsEntity(world, new BlockPos(x, y, z), sampleStack);
             }
             return true;
-        }
-        else
-            return false;
+        } else return false;
     }
-    
+
 }

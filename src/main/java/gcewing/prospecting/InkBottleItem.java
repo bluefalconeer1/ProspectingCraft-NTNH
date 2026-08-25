@@ -1,8 +1,8 @@
-//------------------------------------------------------
+// ------------------------------------------------------
 //
-//   ProspectingCraft - Ink Bottle Item
+// ProspectingCraft - Ink Bottle Item
 //
-//------------------------------------------------------
+// ------------------------------------------------------
 
 package gcewing.prospecting;
 
@@ -14,5 +14,5 @@ public class InkBottleItem extends Item {
         super();
         setMaxDamage(16);
     }
-    
+
 }

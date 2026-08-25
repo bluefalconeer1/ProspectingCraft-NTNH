@@ -1,8 +1,8 @@
-//------------------------------------------------------
+// ------------------------------------------------------
 //
-//   ProspectingCraft Geological Sample Item
+// ProspectingCraft Geological Sample Item
 //
-//------------------------------------------------------
+// ------------------------------------------------------
 
 package gcewing.prospecting;
 
@@ -36,8 +36,7 @@ public class GeologicalSampleItem extends Item {
     @Override
     public void addInformation(ItemStack stack, EntityPlayer player, List info, boolean advanced) {
         BlockPos pos = getSamplePosition(stack);
-        if (pos != null)
-            info.add(String.format("From X=%s Y=%s Z=%s", pos.x, pos.y, pos.z));
+        if (pos != null) info.add(String.format("From X=%s Y=%s Z=%s", pos.x, pos.y, pos.z));
     }
 
 }

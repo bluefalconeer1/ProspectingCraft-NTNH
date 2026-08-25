@@ -1,34 +1,33 @@
-//------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 //
-//   ProspectingCraft - Sample Analyser Gui Screen
+// ProspectingCraft - Sample Analyser Gui Screen
 //
-//------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 
 package gcewing.prospecting;
-
-import java.util.*;
-import static org.lwjgl.opengl.GL11.*;
-
-import net.minecraft.client.gui.*;
-import net.minecraft.entity.player.*;
-// import net.minecraft.util.BlockPos;
-import net.minecraft.tileentity.*;
-import net.minecraft.world.*;
 
 import static gcewing.prospecting.BaseDataChannel.*;
 import static gcewing.prospecting.BaseGui.*;
 import static gcewing.prospecting.BaseGuiButtons.*;
 import static gcewing.prospecting.GSAKitContainer.*;
 import static gcewing.prospecting.GSAKitTE.*;
+import static org.lwjgl.opengl.GL11.*;
+
+import java.util.*;
+
+import net.minecraft.client.gui.*;
+import net.minecraft.entity.player.*;
+import net.minecraft.tileentity.*;
+import net.minecraft.world.*;
 
 public class GSAKitScreen extends BaseGui.Screen {
 
     static String screenTitle = "Sample Analysis Kit";
-    
+
     protected GSAKitContainer container;
     protected GSAKitTE te;
     protected Button addToBookButton;
-    
+
     public GSAKitScreen(GSAKitContainer cont) {
         super(cont, guiWidth, guiHeight);
         this.container = cont;
@@ -36,16 +35,15 @@ public class GSAKitScreen extends BaseGui.Screen {
         addToBookButton = new Button(12, 12, "+", action(this, "addToBook"));
         root.add(194, 25, addToBookButton);
     }
-    
+
     @Override
     public void updateScreen() {
-        //System.out.printf("GSAKitScreen.updateScreen\n");
+        // System.out.printf("GSAKitScreen.updateScreen\n");
         super.updateScreen();
         addToBookButton.setEnabled(te.hasStackInSlot(bookSlot));
-        if (te.results == null)
-            container.message = null;
+        if (te.results == null) container.message = null;
     }
-    
+
     @Override
     protected void drawBackgroundLayer() {
         bindTexture(ProspectingCraft.mod.resourceLocation("textures/gui/gsa_kit.png"), 256, 256);
@@ -56,17 +54,17 @@ public class GSAKitScreen extends BaseGui.Screen {
         setTextColor(0x004c66);
         drawString(screenTitle, 8, 8);
     }
-    
+
     protected void drawProgress() {
         if (te.state == State.ANALYSING) {
             if (te.yMax > te.yMin) {
-                double progress = (double)(te.yCurrent - te.yMin) / (double)(te.yMax - te.yMin);
+                double progress = (double) (te.yCurrent - te.yMin) / (double) (te.yMax - te.yMin);
                 double h = progress * 32;
                 drawTexturedRect(144, 11 + 32 - h, 16, h, 240, 32 - h);
             }
         }
     }
-    
+
     protected void drawResults() {
         int x = 105;
         int y = 47;
@@ -75,17 +73,15 @@ public class GSAKitScreen extends BaseGui.Screen {
         for (String line : lines) {
             drawString(line, x, y);
             y += 10;
-        }        
+        }
     }
-    
+
     protected String getResultHeading() {
         BlockPos pos = te.samplePos;
-        if (pos != null)
-            return String.format("X:%s Y:%s Z:%s", pos.getX(), pos.getY(), pos.getZ());
-        else
-            return "";
+        if (pos != null) return String.format("X:%s Y:%s Z:%s", pos.getX(), pos.getY(), pos.getZ());
+        else return "";
     }
-    
+
     protected List<String> formatResults() {
         List<Bucket> results = te.results;
         List<String> lines = new ArrayList<>();
@@ -93,24 +89,21 @@ public class GSAKitScreen extends BaseGui.Screen {
         if (results != null) {
             int n = 0;
             for (Bucket b : results) {
-                if (n++ >= 12)
-                    break;
+                if (n++ >= 12) break;
                 double percent = 100.0 * b.weight; // / te.totalWeight;
                 String spc;
-                if (percent >= 0.01)
-                    spc = String.format("%.2g%%", percent);
+                if (percent >= 0.01) spc = String.format("%.2g%%", percent);
                 else if (percent >= 0.0001)
-                    //spc = "<0.01%";
+                    // spc = "<0.01%";
                     spc = String.format("%.2gppm", percent * 10000);
-                else
-                    spc = "<1ppm";
+                else spc = "<1ppm";
                 String line = String.format("%s %s", spc, BaseUtils.translateToLocal(b.name));
                 lines.add(line);
             }
         }
         return lines;
     }
-    
+
     protected void drawMessage() {
         String text = container.message;
         if (text != null) {
@@ -122,11 +115,11 @@ public class GSAKitScreen extends BaseGui.Screen {
             glPopMatrix();
         }
     }
-    
+
     public void addToBook() {
         List<String> lines = formatResults();
         String text = BaseStringUtils.join("\n", lines);
-        //System.out.printf("GSAKitScreen.addToBook: text = %s\n", text);
+        // System.out.printf("GSAKitScreen.addToBook: text = %s\n", text);
         ChannelOutput data = ProspectingCraft.channel.openServerContainer("addToBook");
         data.writeUTF(text);
         data.close();

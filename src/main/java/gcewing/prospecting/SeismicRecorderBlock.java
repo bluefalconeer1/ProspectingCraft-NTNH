@@ -1,8 +1,8 @@
-//------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 //
-//   ProspectingCraft - Seismic Recorder block
+// ProspectingCraft - Seismic Recorder block
 //
-//------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 
 package gcewing.prospecting;
 
@@ -25,22 +25,20 @@ public class SeismicRecorderBlock extends BaseBlock<SeismicRecorderTE> {
         String ts = "seismic_recorder_side";
         setModelAndTextures("cube.smeg", tb, tt, tf, ts);
     }
-    
+
     @Override
     public void onNeighborBlockChange(World world, BlockPos pos, IBlockState state, Block block) {
-        //System.out.printf("SeismicRecorderBlock.onNeighborBlockChange\n");
+        // System.out.printf("SeismicRecorderBlock.onNeighborBlockChange\n");
         if (!world.isRemote) {
             boolean signal = world.isBlockIndirectlyGettingPowered(pos.x, pos.y, pos.z);
             SeismicRecorderTE te = getTileEntity(world, pos);
-            if (te != null)
-                te.inputSignal(signal);
+            if (te != null) te.inputSignal(signal);
         }
     }
 
     @Override
-    public boolean onBlockActivated(World world, BlockPos pos, IBlockState state, EntityPlayer player,
-        EnumFacing side, float cx, float cy, float cz)
-    {
+    public boolean onBlockActivated(World world, BlockPos pos, IBlockState state, EntityPlayer player, EnumFacing side,
+        float cx, float cy, float cz) {
         ProspectingCraft.mod.openGui(player, ProspectingCraft.seismicRecorderGui, world, pos);
         return true;
     }

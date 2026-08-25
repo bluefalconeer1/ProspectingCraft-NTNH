@@ -1,8 +1,8 @@
-//------------------------------------------------------
+// ------------------------------------------------------
 //
-//   ProspectingCraft - Client Proxy
+// ProspectingCraft - Client Proxy
 //
-//------------------------------------------------------
+// ------------------------------------------------------
 
 package gcewing.prospecting;
 
@@ -26,7 +26,7 @@ public class ProspectingCraftClient extends BaseModClient<ProspectingCraft> {
     protected void registerItemRenderers() {
         MinecraftForgeClient.registerItemRenderer(ProspectingCraft.mod.itemSeismicSurvey, new SeismicSurveyRenderer());
     }
-    
+
     @Override
     protected void registerTileEntityRenderers() {
         addTileEntityRenderer(SeismicRecorderTE.class, new SeismicRecorderTERenderer());

@@ -1,13 +1,14 @@
-//------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 //
-//   Greg's Mod Base for 1.7 version B - OpenGL rendering target
+// Greg's Mod Base for 1.7 version B - OpenGL rendering target
 //
-//------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 
 package gcewing.prospecting;
 
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL12.*;
+
 import net.minecraft.client.renderer.*;
 import net.minecraft.util.*;
 
@@ -21,11 +22,11 @@ public class BaseGLRenderTarget extends BaseRenderTarget {
     protected int glMode;
     protected int emissiveMode;
     protected int texturedMode;
-    
+
     public BaseGLRenderTarget() {
         super(0, 0, 0, null);
     }
-    
+
     public void start(boolean usingLightmap) {
         this.usingLightmap = usingLightmap;
         if (debugGL) System.out.printf("BaseGLRenderTarget: glPushAttrib()\n");
@@ -38,7 +39,7 @@ public class BaseGLRenderTarget extends BaseRenderTarget {
         texturedMode = -1;
         texture = null;
     }
-    
+
     @Override
     public void setTexture(ITexture tex) {
         if (texture != tex) {
@@ -52,23 +53,22 @@ public class BaseGLRenderTarget extends BaseRenderTarget {
             setTexturedMode(!tex.isSolid());
             setEmissiveMode(tex.isEmissive());
         }
-    }   
-    
+    }
+
     protected void setEmissiveMode(boolean state) {
         int mode = state ? 1 : 0;
         if (emissiveMode != mode) {
             if (debugGL) System.out.printf("BaseGLRenderTarget: glSetEnabled(GL_LIGHTING, %s)\n", !state);
             glSetEnabled(GL_LIGHTING, !state);
-            if (usingLightmap)
-                setLightmapEnabled(!state);
+            if (usingLightmap) setLightmapEnabled(!state);
             emissiveMode = mode;
         }
     }
-    
+
     protected void setTexturedMode(boolean state) {
         int mode = state ? 1 : 0;
         if (texturedMode != mode) {
-            //System.out.printf("BaseGLRenderTarget.setTexturedMode: %s\n", state);
+            // System.out.printf("BaseGLRenderTarget.setTexturedMode: %s\n", state);
             setGLMode(0);
             if (debugGL) System.out.printf("BaseGLRenderTarget: glSetEnabled(GL_TEXTURE_2D, %s)\n", state);
             glSetEnabled(GL_TEXTURE_2D, state);
@@ -81,27 +81,32 @@ public class BaseGLRenderTarget extends BaseRenderTarget {
         glSetEnabled(GL_TEXTURE_2D, state);
         OpenGlHelper.setActiveTexture(OpenGlHelper.defaultTexUnit);
     }
-    
+
     protected void glSetEnabled(int mode, boolean state) {
-        if (state)
-            glEnable(mode);
-        else
-            glDisable(mode);
+        if (state) glEnable(mode);
+        else glDisable(mode);
     }
 
     @Override
     protected void rawAddVertex(Vector3 p, double u, double v) {
-        if (debugGL)
-            System.out.printf(
-                "BaseGLRenderTarget: rawAddVertex: %s %s normal %s rgba (%.2f,%.2f.%.2f,%.2f) uv (%.4f,%.4f)\n",
-                vertexCount, p, normal, r(), g(), b(), a(), u, v);
+        if (debugGL) System.out.printf(
+            "BaseGLRenderTarget: rawAddVertex: %s %s normal %s rgba (%.2f,%.2f.%.2f,%.2f) uv (%.4f,%.4f)\n",
+            vertexCount,
+            p,
+            normal,
+            r(),
+            g(),
+            b(),
+            a(),
+            u,
+            v);
         setGLMode(verticesPerFace);
         glColor4f(r(), g(), b(), a());
         glNormal3d(normal.x, normal.y, normal.z);
         glTexCoord2d(u, v);
         glVertex3d(p.x, p.y, p.z);
     }
-    
+
     protected void setGLMode(int mode) {
         if (glMode != mode) {
             if (glMode != 0) {
@@ -125,7 +130,7 @@ public class BaseGLRenderTarget extends BaseRenderTarget {
             }
         }
     }
-    
+
     @Override
     public void finish() {
         setGLMode(0);

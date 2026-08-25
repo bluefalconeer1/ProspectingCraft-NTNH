@@ -1,25 +1,21 @@
-//------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 //
-//   Greg's Mod Base for 1.7 Version B - Rendering target base class
+// Greg's Mod Base for 1.7 Version B - Rendering target base class
 //
-//------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 
 package gcewing.prospecting;
 
-import java.util.*;
-import java.nio.*;
 import static java.lang.Math.*;
 
+import java.nio.*;
+import java.util.*;
+
 import net.minecraft.block.*;
-// import net.minecraft.block.state.*;
-// import net.minecraft.client.renderer.block.model.*;
 import net.minecraft.client.renderer.texture.*;
-//import net.minecraft.client.renderer.vertex.*;
-// import net.minecraft.client.resources.model.*;
 import net.minecraft.item.*;
 import net.minecraft.util.*;
 import net.minecraft.world.*;
-
 import net.minecraftforge.client.model.*;
 
 import gcewing.prospecting.BaseModClient.ITexture;
@@ -48,7 +44,7 @@ public abstract class BaseRenderTarget implements BaseModClient.IRenderTarget {
             textureOverride = true;
         }
     }
-    
+
     // ---------------------------- IRenderTarget ----------------------------
 
     public boolean isRenderingBreakEffects() {
@@ -58,70 +54,62 @@ public abstract class BaseRenderTarget implements BaseModClient.IRenderTarget {
     public void beginTriangle() {
         setMode(3);
     }
-    
+
     public void beginQuad() {
         setMode(4);
     }
-    
+
     protected void setMode(int mode) {
-        if (vertexCount != 0)
-            throw new IllegalStateException("Changing mode in mid-face");
+        if (vertexCount != 0) throw new IllegalStateException("Changing mode in mid-face");
         verticesPerFace = mode;
     }
-    
+
     public void setTexture(ITexture texture) {
         if (!textureOverride) {
-            if (texture == null)
-                throw new IllegalArgumentException("Setting null texture");
+            if (texture == null) throw new IllegalArgumentException("Setting null texture");
             this.texture = texture;
         }
     }
-    
+
     public void setColor(double r, double g, double b, double a) {
-        red = (float)r;
-        green = (float)g;
-        blue = (float)b;
-        alpha = (float)a;
+        red = (float) r;
+        green = (float) g;
+        blue = (float) b;
+        alpha = (float) a;
     }
-        
+
     public void setNormal(Vector3 n) {
         normal = n;
         face = n.facing();
-        shade = (float)(0.6 * n.x * n.x + 0.8 * n.z * n.z + (n.y > 0 ? 1 : 0.5) * n.y * n.y);
+        shade = (float) (0.6 * n.x * n.x + 0.8 * n.z * n.z + (n.y > 0 ? 1 : 0.5) * n.y * n.y);
     }
-    
+
     public void addVertex(Vector3 p, double u, double v) {
-        if (texture.isProjected())
-            addProjectedVertex(p, face);
-        else
-            addUVVertex(p, u, v);
+        if (texture.isProjected()) addProjectedVertex(p, face);
+        else addUVVertex(p, u, v);
     }
 
     public void addUVVertex(Vector3 p, double u, double v) {
-        //System.out.printf("BaseRenderTarget.addUVVertex: %s (%.3f, %.3f)\n", p, u, v);
+        // System.out.printf("BaseRenderTarget.addUVVertex: %s (%.3f, %.3f)\n", p, u, v);
         double iu, iv;
-        if (verticesPerFace == 0)
-            throw new IllegalStateException("No face active");
-        if (vertexCount >= verticesPerFace)
-            throw new IllegalStateException("Too many vertices in face");
-        if (normal == null)
-            throw new IllegalStateException("No normal");
-        if (texture == null)
-            throw new IllegalStateException("No texture");
+        if (verticesPerFace == 0) throw new IllegalStateException("No face active");
+        if (vertexCount >= verticesPerFace) throw new IllegalStateException("Too many vertices in face");
+        if (normal == null) throw new IllegalStateException("No normal");
+        if (texture == null) throw new IllegalStateException("No texture");
         iu = texture.interpolateU(u);
         iv = texture.interpolateV(v);
         rawAddVertex(p, iu, iv);
         if (++vertexCount == 3 && expandTrianglesToQuads && verticesPerFace == 3) {
-            //System.out.printf("BaseRenderTarget.addVertex: Doubling vertex\n");
+            // System.out.printf("BaseRenderTarget.addVertex: Doubling vertex\n");
             rawAddVertex(p, iu, iv);
         }
-        //System.out.printf("BaseRenderTarget.addVertex: Now %s of %s\n", vertexCount, verticesPerFace);
+        // System.out.printf("BaseRenderTarget.addVertex: Now %s of %s\n", vertexCount, verticesPerFace);
     }
-    
+
     public void endFace() {
-        //System.out.printf("BaseRenderTarget.endFace: %s of %s\n", vertexCount, verticesPerFace);
+        // System.out.printf("BaseRenderTarget.endFace: %s of %s\n", vertexCount, verticesPerFace);
         if (vertexCount < verticesPerFace) {
-            //System.out.printf("BaseRenderTarget.endFace: Too few vertices in face\n");
+            // System.out.printf("BaseRenderTarget.endFace: Too few vertices in face\n");
             throw new IllegalStateException("Too few vertices in face");
         }
         vertexCount = 0;
@@ -129,37 +117,68 @@ public abstract class BaseRenderTarget implements BaseModClient.IRenderTarget {
     }
 
     public void finish() {
-        if (vertexCount > 0)
-            throw new IllegalStateException("Rendering ended with incomplete face");
+        if (vertexCount > 0) throw new IllegalStateException("Rendering ended with incomplete face");
     }
-    
-    //-----------------------------------------------------------------------------------------
+
+    // -----------------------------------------------------------------------------------------
 
     protected abstract void rawAddVertex(Vector3 p, double u, double v);
-    
-    public float r() {return (float)(red * texture.red());}
-    public float g() {return (float)(green * texture.green());}
-    public float b() {return (float)(blue * texture.blue());}
-    public float a() {return (float)alpha;}
+
+    public float r() {
+        return (float) (red * texture.red());
+    }
+
+    public float g() {
+        return (float) (green * texture.green());
+    }
+
+    public float b() {
+        return (float) (blue * texture.blue());
+    }
+
+    public float a() {
+        return (float) alpha;
+    }
 
     // Add vertex with texture coords projected from the given direction
     public void addProjectedVertex(Vector3 p, EnumFacing face) {
         double x = p.x - blockX;
         double y = p.y - blockY;
         double z = p.z - blockZ;
-        //System.out.printf("BaseRenderTarget.addProjectedVertex: world (%.3f, %.3f, %.3f) block (%.3f, %.3f, %.3f) %s\n",
-        //  p.x, p.y, p.z, x, y, z, face);
+        // System.out.printf("BaseRenderTarget.addProjectedVertex: world (%.3f, %.3f, %.3f) block (%.3f, %.3f, %.3f)
+        // %s\n",
+        // p.x, p.y, p.z, x, y, z, face);
         double u, v;
         switch (face) {
-            case DOWN:   u = x;      v = 1 - z;  break;
-            case UP:     u = x;      v = z;      break;
-            case NORTH:  u = 1 - x;  v = 1 - y;  break;
-            case SOUTH:  u = x;      v = 1 - y;  break;
-            case WEST:   u = 1 - z;  v = 1 - y;  break;
-            case EAST:   u = z;      v = 1 - y;  break;
-            default:     u = 0;      v = 0;
+            case DOWN:
+                u = x;
+                v = 1 - z;
+                break;
+            case UP:
+                u = x;
+                v = z;
+                break;
+            case NORTH:
+                u = 1 - x;
+                v = 1 - y;
+                break;
+            case SOUTH:
+                u = x;
+                v = 1 - y;
+                break;
+            case WEST:
+                u = 1 - z;
+                v = 1 - y;
+                break;
+            case EAST:
+                u = z;
+                v = 1 - y;
+                break;
+            default:
+                u = 0;
+                v = 0;
         }
         addUVVertex(p, u, v);
     }
-    
+
 }

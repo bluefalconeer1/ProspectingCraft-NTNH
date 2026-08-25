@@ -1,43 +1,34 @@
-//------------------------------------------------------
+// ------------------------------------------------------
 //
-//   ProspectingCraft - Sample Analyser Tile Entity
+// ProspectingCraft - Sample Analyser Tile Entity
 //
-//------------------------------------------------------
+// ------------------------------------------------------
 
 package gcewing.prospecting;
 
+import static gcewing.prospecting.BaseBlockUtils.*;
+import static gcewing.prospecting.BaseUtils.*;
 import static java.lang.Math.*;
+
 import java.util.*;
-import com.google.common.primitives.Ints;
 
 import net.minecraft.block.*;
 import net.minecraft.block.material.*;
-import net.minecraft.inventory.*;
 import net.minecraft.init.*;
+import net.minecraft.inventory.*;
 import net.minecraft.item.*;
 import net.minecraft.nbt.*;
 import net.minecraft.tileentity.*;
-import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.World;
-import net.minecraft.world.storage.MapData;
-
 import net.minecraftforge.common.util.Constants;
-import net.minecraftforge.oredict.OreDictionary;
-
-import static gcewing.prospecting.BaseUtils.*;
-import static gcewing.prospecting.BaseBlockUtils.*;
 
 public class GSAKitTE extends BaseTileInventory implements ITickable {
 
-    protected static final int
-        sampleSlot = 0,
-        litmusPaperSlot = 1,
-        bookSlot = 2,
-        numInventorySlots = 3;
-    
+    protected static final int sampleSlot = 0, litmusPaperSlot = 1, bookSlot = 2, numInventorySlots = 3;
+
     // Configuration options
     public static boolean debug = false;
-    
+
     public State state = State.IDLE;
     public BlockPos samplePos;
     public int yMin, yCurrent, yMax;
@@ -45,8 +36,8 @@ public class GSAKitTE extends BaseTileInventory implements ITickable {
 
     protected IInventory inventory;
     protected BucketCollection buckets;
-//     protected double totalWeight;
-    
+    // protected double totalWeight;
+
     public static void configure(BaseConfiguration cfg) {
         debug = cfg.getBoolean("GSAKit", "debug", debug);
     }
@@ -55,7 +46,7 @@ public class GSAKitTE extends BaseTileInventory implements ITickable {
         super();
         inventory = new InventoryBasic("", false, numInventorySlots);
     }
-    
+
     @Override
     protected IInventory getInventory() {
         return inventory;
@@ -63,17 +54,15 @@ public class GSAKitTE extends BaseTileInventory implements ITickable {
 
     @Override
     public void readContentsFromNBT(NBTTagCompound nbt) {
-        //System.out.printf("GSAKitTE.readContentsFromNBT: %s\n", nbt);
+        // System.out.printf("GSAKitTE.readContentsFromNBT: %s\n", nbt);
         super.readContentsFromNBT(nbt);
         state = states[nbt.getInteger("state")];
         yMin = nbt.getInteger("yMin");
         yMax = nbt.getInteger("yMax");
         yCurrent = yMin;
-        if (nbt.hasKey("samplePos"))
-            samplePos = blockPosFromNBT(nbt.getCompoundTag("samplePos"));
-        else
-            samplePos = null;
-//         totalWeight = nbt.getDouble("totalWeight");
+        if (nbt.hasKey("samplePos")) samplePos = blockPosFromNBT(nbt.getCompoundTag("samplePos"));
+        else samplePos = null;
+        // totalWeight = nbt.getDouble("totalWeight");
         NBTTagList weights = nbt.getTagList("resultWeights", Constants.NBT.TAG_DOUBLE);
         NBTTagList names = nbt.getTagList("resultNames", Constants.NBT.TAG_STRING);
         int n = min(weights.tagCount(), names.tagCount());
@@ -88,16 +77,15 @@ public class GSAKitTE extends BaseTileInventory implements ITickable {
             }
         }
     }
-    
+
     @Override
     public void writeContentsToNBT(NBTTagCompound nbt) {
         super.writeContentsToNBT(nbt);
         nbt.setInteger("state", state.ordinal());
         nbt.setInteger("yMin", yMin);
         nbt.setInteger("yMax", yMax);
-        if (samplePos != null)
-            nbt.setTag("samplePos", nbtFromBlockPos(samplePos));
-//         nbt.setDouble("totalWeight", totalWeight);
+        if (samplePos != null) nbt.setTag("samplePos", nbtFromBlockPos(samplePos));
+        // nbt.setDouble("totalWeight", totalWeight);
         if (results != null) {
             NBTTagList weights = new NBTTagList();
             NBTTagList names = new NBTTagList();
@@ -109,37 +97,36 @@ public class GSAKitTE extends BaseTileInventory implements ITickable {
             nbt.setTag("resultNames", names);
         }
     }
-    
+
     @Override
     protected void readClientStateFromNBT(NBTTagCompound nbt) {
         super.readClientStateFromNBT(nbt);
         yCurrent = nbt.getInteger("yCurrent");
     }
-    
+
     @Override
     protected void writeClientStateToNBT(NBTTagCompound nbt) {
         super.writeClientStateToNBT(nbt);
         nbt.setInteger("yCurrent", yCurrent);
     }
-    
+
     protected boolean getSample() {
         ItemStack stack = getStackInSlot(sampleSlot);
         if (stack != null && stack.stackSize > 0) {
             samplePos = GeologicalSampleItem.getSamplePosition(stack);
-            if (samplePos != null)
-                return true;
+            if (samplePos != null) return true;
         }
         return false;
     }
-    
+
     protected boolean readyToAnalyse() {
         return getSample() && hasLitmusPaper();
     }
-    
+
     protected boolean hasSample() {
         return hasStackInSlot(sampleSlot);
     }
-    
+
     protected boolean hasLitmusPaper() {
         return hasStackInSlot(litmusPaperSlot);
     }
@@ -156,8 +143,7 @@ public class GSAKitTE extends BaseTileInventory implements ITickable {
                     }
                     break;
                 case ANALYSING:
-                    if (yCurrent <= yMax)
-                        scanLayer(yCurrent++, worldObj, samplePos, buckets);
+                    if (yCurrent <= yMax) scanLayer(yCurrent++, worldObj, samplePos, buckets);
                     else {
                         endScan();
                         state = State.FINISHED;
@@ -173,17 +159,17 @@ public class GSAKitTE extends BaseTileInventory implements ITickable {
             }
         }
     }
-    
+
     protected void damageSample() {
         damageStackInSlot(sampleSlot, 1);
     }
-    
+
     protected void useLitmusPaper() {
         decrStackSize(litmusPaperSlot, 1);
     }
-    
+
     protected void beginScan() {
-        //System.out.printf("GSAKitTE.beginScan\n");
+        // System.out.printf("GSAKitTE.beginScan\n");
         damageSample();
         useLitmusPaper();
         int y = samplePos.getY();
@@ -191,46 +177,44 @@ public class GSAKitTE extends BaseTileInventory implements ITickable {
         yMax = min(255, y + 16);
         yCurrent = yMin;
         buckets = new BucketCollection();
-//         totalWeight = 0;
+        // totalWeight = 0;
         results = null;
     }
-    
+
     protected void endScan() {
         buckets.scaleWeights();
         results = buckets.sorted();
-        //dumpResults("endScan");
+        // dumpResults("endScan");
     }
-    
+
     public static List<Bucket> scanRegion(World world, BlockPos samplePos) {
         int yc = samplePos.getY();
         int y0 = max(0, yc - 16);
         int y1 = min(255, yc + 16);
         BucketCollection buckets = new BucketCollection();
-        for (int y = y0; y <= y1; y++)
-            scanLayer(y, world, samplePos, buckets);
+        for (int y = y0; y <= y1; y++) scanLayer(y, world, samplePos, buckets);
         buckets.scaleWeights();
         return buckets.sorted();
     }
-    
+
     protected static void scanLayer(int y, World world, BlockPos samplePos, BucketCollection buckets) {
-        //System.out.printf("GSAKitTE.scanLayer: %s\n", y);
+        // System.out.printf("GSAKitTE.scanLayer: %s\n", y);
         int xc = samplePos.getX();
         int zc = samplePos.getZ();
         int k = y - samplePos.getY();
         for (int i = -16; i <= 16; i++) {
             for (int j = -16; j <= 16; j++) {
-                if ((i|j|k) != 0) {
+                if ((i | j | k) != 0) {
                     int x = xc + i;
                     int z = zc + j;
-                    //double weight = 1.0/sqrt(i*i + j*j + k*k);
-                    double weight = 1.0/(i*i + j*j + k*k);
+                    // double weight = 1.0/sqrt(i*i + j*j + k*k);
+                    double weight = 1.0 / (i * i + j * j + k * k);
                     buckets.totalWeight += weight;
                     BlockPos pos = new BlockPos(x, y, z);
                     IBlockState state = getWorldBlockState(world, pos);
                     String ore = getOreName(state);
                     if (ore != null) {
-                        if (debug)
-                            System.out.printf("ProspectingCraft: GSAKit: %s: %s\n", ore, pos);
+                        if (debug) System.out.printf("ProspectingCraft: GSAKit: %s: %s\n", ore, pos);
                         Bucket b = buckets.get(ore);
                         b.weight += weight;
                     }
@@ -238,51 +222,50 @@ public class GSAKitTE extends BaseTileInventory implements ITickable {
             }
         }
     }
-    
+
     protected void dumpResults(String title) {
         System.out.printf("GSAKitTE.dumpResults: for %s\n", title);
         if (results != null) {
-            for (Bucket b : results)
-                System.out.printf("GSAKit.dumpResults: %s %s\n", b.weight, b.name);
+            for (Bucket b : results) System.out.printf("GSAKit.dumpResults: %s %s\n", b.weight, b.name);
         }
     }
-    
+
     protected static String getOreName(IBlockState state) {
         ItemStack stack = newBlockStack(state);
         if (stack != null) {
-            if (SeismicRecorderTE.itemStackIsOfInterest(stack))
-               return stack.getUnlocalizedName();
+            if (SeismicRecorderTE.itemStackIsOfInterest(stack)) return stack.getUnlocalizedName();
         }
         return null;
     }
 
-    //-------------------------------------------------------------------------
-    
+    // -------------------------------------------------------------------------
+
     public static enum State {
-        IDLE, ANALYSING, FINISHED;
+        IDLE,
+        ANALYSING,
+        FINISHED;
     }
-    
+
     protected static State[] states = State.values();
-    
+
     static class Bucket implements Comparable<Bucket> {
+
         public String name;
         public double weight;
-        
+
         public int compareTo(Bucket that) {
-            if (this.weight > that.weight)
-                return -1;
-            else if (this.weight < that.weight)
-                return 1;
-            else
-                return 0;
+            if (this.weight > that.weight) return -1;
+            else if (this.weight < that.weight) return 1;
+            else return 0;
         }
 
     }
-    
+
     static class BucketCollection {
+
         double totalWeight = 0;
         Map<String, Bucket> map = new HashMap<>();
-        
+
         public Bucket get(String name) {
             Bucket b = map.get(name);
             if (b == null) {
@@ -292,19 +275,18 @@ public class GSAKitTE extends BaseTileInventory implements ITickable {
             }
             return b;
         }
-        
+
         public void scaleWeights() {
-            for (Bucket b : map.values())
-                b.weight /= totalWeight;
+            for (Bucket b : map.values()) b.weight /= totalWeight;
             totalWeight = 1;
         }
-        
+
         public List<Bucket> sorted() {
             List<Bucket> list = new ArrayList(map.values());
             Collections.sort(list);
             return list;
         }
-        
+
     }
 
 }

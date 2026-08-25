@@ -1,28 +1,24 @@
-//------------------------------------------------------
+// ------------------------------------------------------
 //
-//   ProspectingCraft - Seismic Survey Item
+// ProspectingCraft - Seismic Survey Item
 //
-//------------------------------------------------------
+// ------------------------------------------------------
 
 package gcewing.prospecting;
 
 import java.util.*;
 
 import net.minecraft.entity.*;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.*;
 import net.minecraft.nbt.*;
 import net.minecraft.world.*;
 import net.minecraft.world.storage.MapData;
 
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.network.Packet;
-import net.minecraft.network.play.server.S34PacketMaps;
-
 public class SeismicSurveyItem extends ItemMap {
-    
+
     @Override
-    public void updateMapData(World world, Entity entity, MapData data) {
-    }
+    public void updateMapData(World world, Entity entity, MapData data) {}
 
     @Override
     public void addInformation(ItemStack stack, EntityPlayer player, List info, boolean advanced) {

@@ -1,6 +1,6 @@
 package gcewing.prospecting;
 
-public interface IStringSerializable
-{
+public interface IStringSerializable {
+
     String getName();
 }
