@@ -3,19 +3,25 @@ package gcewing.prospecting.survey.network;
 import static gcewing.prospecting.BaseDataChannel.ServerMessageHandler;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.management.ServerConfigurationManager;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import cpw.mods.fml.common.FMLCommonHandler;
 import gcewing.prospecting.BaseDataChannel.ChannelInput;
 import gcewing.prospecting.BaseDataChannel.ChannelOutput;
 import gcewing.prospecting.ProspectingCraft;
 import gcewing.prospecting.survey.PlayerSurveyData;
+import gcewing.prospecting.survey.SurveyArea;
 import gcewing.prospecting.survey.SurveyChunkSnapshot;
 import gcewing.prospecting.survey.SurveyChunkSnapshotCodec;
 
@@ -59,6 +65,29 @@ public final class SurveyChunkServerHandler {
         }
     }
 
+    public void notifySurveyCompleted(UUID ownerId, SurveyArea surveyArea) {
+        if (ownerId == null || surveyArea == null) return;
+        EntityPlayerMP owner = findConnectedPlayer(ownerId);
+        if (owner == null) return;
+
+        int minChunkX = surveyArea.getMinX() >> 4;
+        int minChunkZ = surveyArea.getMinZ() >> 4;
+        int maxChunkX = (surveyArea.getMinX() + surveyArea.getWidth() - 1) >> 4;
+        int maxChunkZ = (surveyArea.getMinZ() + surveyArea.getHeight() - 1) >> 4;
+        try {
+            ChannelOutput output = ProspectingCraft.channel
+                .openPlayer(owner, SurveyChunkNetworkProtocol.INVALIDATION_MESSAGE);
+            output.writeInt(surveyArea.getDimensionId());
+            output.writeInt(minChunkX);
+            output.writeInt(minChunkZ);
+            output.writeInt(maxChunkX);
+            output.writeInt(maxChunkZ);
+            output.close();
+        } catch (RuntimeException exception) {
+            LOG.error("Could not invalidate completed survey chunks", exception);
+        }
+    }
+
     private void sendSnapshot(Request request) {
         EntityPlayerMP player = request.player;
         if (player.isDead || player.dimension != request.dimensionId) return;
@@ -73,6 +102,17 @@ public final class SurveyChunkServerHandler {
         } catch (IOException | RuntimeException exception) {
             LOG.error("Could not send survey chunk snapshot", exception);
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static EntityPlayerMP findConnectedPlayer(UUID playerId) {
+        MinecraftServer server = FMLCommonHandler.instance()
+            .getMinecraftServerInstance();
+        if (server == null) return null;
+        ServerConfigurationManager configurationManager = server.getConfigurationManager();
+        for (EntityPlayerMP player : (List<EntityPlayerMP>) configurationManager.playerEntityList)
+            if (playerId.equals(player.getUniqueID())) return player;
+        return null;
     }
 
     private static final class Request {

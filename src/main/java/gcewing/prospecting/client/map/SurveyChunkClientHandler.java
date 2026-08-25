@@ -27,7 +27,7 @@ public final class SurveyChunkClientHandler {
 
     private final SurveyChunkSnapshotCache cache = new SurveyChunkSnapshotCache();
     private final ConcurrentLinkedQueue<Request> requests = new ConcurrentLinkedQueue<Request>();
-    private final ConcurrentLinkedQueue<SurveyChunkSnapshot> responses = new ConcurrentLinkedQueue<SurveyChunkSnapshot>();
+    private final ConcurrentLinkedQueue<ReceivedEvent> receivedEvents = new ConcurrentLinkedQueue<ReceivedEvent>();
 
     private SurveyChunkClientHandler() {}
 
@@ -41,20 +41,37 @@ public final class SurveyChunkClientHandler {
     @ClientMessageHandler(SurveyChunkNetworkProtocol.RESPONSE_MESSAGE)
     public void onSnapshotReceived(ChannelInput input) {
         try {
-            responses.add(SurveyChunkSnapshotCodec.read(input));
+            receivedEvents.add(ReceivedEvent.forSnapshot(SurveyChunkSnapshotCodec.read(input)));
         } catch (IOException | RuntimeException exception) {
             LOG.error("Could not read survey chunk snapshot", exception);
         }
     }
 
-    public void processQueues() {
-        boolean receivedSnapshot = false;
-        SurveyChunkSnapshot snapshot;
-        while ((snapshot = responses.poll()) != null) {
-            cache.accept(snapshot);
-            receivedSnapshot = true;
+    @ClientMessageHandler(SurveyChunkNetworkProtocol.INVALIDATION_MESSAGE)
+    public void onChunksInvalidated(ChannelInput input) {
+        try {
+            int dimensionId = input.readInt();
+            int minChunkX = input.readInt();
+            int minChunkZ = input.readInt();
+            int maxChunkX = input.readInt();
+            int maxChunkZ = input.readInt();
+            if (!SurveyChunkNetworkProtocol.isValidChunkRange(minChunkX, minChunkZ, maxChunkX, maxChunkZ)) return;
+            receivedEvents.add(ReceivedEvent.forInvalidation(dimensionId, minChunkX, minChunkZ, maxChunkX, maxChunkZ));
+        } catch (RuntimeException exception) {
+            LOG.error("Could not read survey chunk invalidation", exception);
         }
-        if (receivedSnapshot) OreSurveyLayerManager.INSTANCE.forceRefresh();
+    }
+
+    public void processQueues() {
+        boolean surveyDataChanged = false;
+        ReceivedEvent event;
+        while ((event = receivedEvents.poll()) != null) {
+            if (event.snapshot != null) cache.accept(event.snapshot);
+            else cache
+                .invalidate(event.dimensionId, event.minChunkX, event.minChunkZ, event.maxChunkX, event.maxChunkZ);
+            surveyDataChanged = true;
+        }
+        if (surveyDataChanged) OreSurveyLayerManager.INSTANCE.forceRefresh();
 
         Minecraft minecraft = Minecraft.getMinecraft();
         if (minecraft.thePlayer == null || minecraft.theWorld == null) return;
@@ -68,7 +85,7 @@ public final class SurveyChunkClientHandler {
     public void reset() {
         cache.clear();
         requests.clear();
-        responses.clear();
+        receivedEvents.clear();
         OreSurveyLayerManager.INSTANCE.clearFullCache();
     }
 
@@ -90,6 +107,35 @@ public final class SurveyChunkClientHandler {
             this.dimensionId = dimensionId;
             this.chunkX = chunkX;
             this.chunkZ = chunkZ;
+        }
+    }
+
+    private static final class ReceivedEvent {
+
+        private final SurveyChunkSnapshot snapshot;
+        private final int dimensionId;
+        private final int minChunkX;
+        private final int minChunkZ;
+        private final int maxChunkX;
+        private final int maxChunkZ;
+
+        private ReceivedEvent(SurveyChunkSnapshot snapshot, int dimensionId, int minChunkX, int minChunkZ,
+            int maxChunkX, int maxChunkZ) {
+            this.snapshot = snapshot;
+            this.dimensionId = dimensionId;
+            this.minChunkX = minChunkX;
+            this.minChunkZ = minChunkZ;
+            this.maxChunkX = maxChunkX;
+            this.maxChunkZ = maxChunkZ;
+        }
+
+        private static ReceivedEvent forSnapshot(SurveyChunkSnapshot snapshot) {
+            return new ReceivedEvent(snapshot, 0, 0, 0, 0, 0);
+        }
+
+        private static ReceivedEvent forInvalidation(int dimensionId, int minChunkX, int minChunkZ, int maxChunkX,
+            int maxChunkZ) {
+            return new ReceivedEvent(null, dimensionId, minChunkX, minChunkZ, maxChunkX, maxChunkZ);
         }
     }
 }

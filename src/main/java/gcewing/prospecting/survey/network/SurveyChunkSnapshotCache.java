@@ -42,6 +42,18 @@ public class SurveyChunkSnapshotCache {
         pending.remove(key);
     }
 
+    public synchronized void invalidate(int dimensionId, int minChunkX, int minChunkZ, int maxChunkX, int maxChunkZ) {
+        Iterator<Key> iterator = snapshots.keySet()
+            .iterator();
+        while (iterator.hasNext()) {
+            Key key = iterator.next();
+            if (key.dimensionId == dimensionId && key.chunkX >= minChunkX
+                && key.chunkX <= maxChunkX
+                && key.chunkZ >= minChunkZ
+                && key.chunkZ <= maxChunkZ) iterator.remove();
+        }
+    }
+
     public synchronized void clear() {
         snapshots.clear();
         pending.clear();

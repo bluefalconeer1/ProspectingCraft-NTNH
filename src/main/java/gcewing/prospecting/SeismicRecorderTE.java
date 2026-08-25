@@ -28,6 +28,7 @@ import com.google.common.primitives.Ints;
 import gcewing.prospecting.survey.OreDictionaryResolver;
 import gcewing.prospecting.survey.PlayerSurveyData;
 import gcewing.prospecting.survey.SurveyArea;
+import gcewing.prospecting.survey.network.SurveyChunkServerHandler;
 
 public class SeismicRecorderTE extends BaseTileInventory implements ITickable {
 
@@ -266,6 +267,10 @@ public class SeismicRecorderTE extends BaseTileInventory implements ITickable {
                         useInk();
                         produceResult();
                     }
+                    PlayerSurveyData playerSurveyData = getPlayerSurveyData();
+                    SurveyArea completedSurvey = playerSurveyData == null ? null
+                        : playerSurveyData.getSurveyArea(activeSurveyId);
+                    SurveyChunkServerHandler.INSTANCE.notifySurveyCompleted(ownerId, completedSurvey);
                     activeSurveyId = null;
                 }
                 markChanged();

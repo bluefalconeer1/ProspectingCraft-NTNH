@@ -43,6 +43,36 @@ public class SurveyChunkSnapshotCacheTest {
         assertTrue(cache.markPending(0, 3, 4));
     }
 
+    @Test
+    public void invalidatesOnlySnapshotsInsideTheCompletedSurvey() {
+        SurveyChunkSnapshotCache cache = new SurveyChunkSnapshotCache();
+        SurveyChunkSnapshot inside = newSnapshot(0, -2, 3);
+        SurveyChunkSnapshot outside = newSnapshot(0, 7, 3);
+        SurveyChunkSnapshot otherDimension = newSnapshot(1, -2, 3);
+        cache.accept(inside);
+        cache.accept(outside);
+        cache.accept(otherDimension);
+
+        cache.invalidate(0, -4, 1, 4, 5);
+
+        assertNull(cache.get(0, -2, 3));
+        assertSame(outside, cache.get(0, 7, 3));
+        assertSame(otherDimension, cache.get(1, -2, 3));
+    }
+
+    @Test
+    public void invalidationKeepsAnInFlightRequestPending() {
+        SurveyChunkSnapshotCache cache = new SurveyChunkSnapshotCache();
+        assertTrue(cache.markPending(0, 2, 3));
+
+        cache.invalidate(0, 2, 3, 2, 3);
+
+        assertFalse(cache.markPending(0, 2, 3));
+        SurveyChunkSnapshot response = newSnapshot(0, 2, 3);
+        cache.accept(response);
+        assertSame(response, cache.get(0, 2, 3));
+    }
+
     private static SurveyChunkSnapshot newSnapshot(int dimensionId, int chunkX, int chunkZ) {
         PlayerSurveyData data = new PlayerSurveyData(PlayerSurveyData.getDataName(OWNER_ID));
         return SurveyChunkSnapshot.from(data, dimensionId, chunkX, chunkZ);
