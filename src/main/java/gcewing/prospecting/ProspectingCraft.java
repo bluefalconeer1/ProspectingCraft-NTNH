@@ -81,7 +81,6 @@ public class ProspectingCraft extends BaseMod<ProspectingCraftClient> {
     @Mod.EventHandler
     public void postInit(FMLPostInitializationEvent e) {
         super.postInit(e);
-        SeismicRecorderTE.init();
     }
 
     @Mod.EventHandler

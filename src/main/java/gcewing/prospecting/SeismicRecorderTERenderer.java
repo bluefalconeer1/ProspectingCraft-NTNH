@@ -20,10 +20,6 @@ public class SeismicRecorderTERenderer extends BaseTileEntityRenderer {
 
     protected void renderSeismicRecorder(SeismicRecorderTE te, Trans3 t, IRenderTarget target) {
         switch (te.getReadyStatus()) {
-            case FIN:
-                renderReadyLight(t, target);
-                renderFinishedLight(t, target);
-                break;
             case RUN:
                 renderReadyLight(t, target);
                 if (te.blink()) renderFinishedLight(t, target);

@@ -12,15 +12,16 @@ import static gcewing.prospecting.SeismicRecorderContainer.*;
 import net.minecraft.client.gui.*;
 import net.minecraft.entity.player.*;
 import net.minecraft.tileentity.*;
+import net.minecraft.util.StatCollector;
 import net.minecraft.world.*;
 
 public class SeismicRecorderScreen extends BaseGui.Screen {
 
+    private static final int ACTIVATE_BUTTON_ID = 0;
     static String screenTitle = "Geological Surveyor";
-    static String[] statusMessages = { "Ready", "Analyzing...", "Finished", "Out of Paper", "Out of Gunpowder",
-        "Out of Black Ink", "Out of Magenta Ink", "Out of Yellow Ink", "Out of Cyan Ink", };
 
     protected SeismicRecorderTE te;
+    protected GuiButton activateButton;
 
     // public static SeismicRecorderScreen create(EntityPlayer player, World world, BlockPos pos) {
     // TileEntity te = BaseBlockUtils.getWorldTileEntity(world, pos);
@@ -41,10 +42,30 @@ public class SeismicRecorderScreen extends BaseGui.Screen {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
+    public void initGui() {
+        super.initGui();
+        activateButton = new GuiButton(
+            ACTIVATE_BUTTON_ID,
+            guiLeft + activateButtonX,
+            guiTop + activateButtonY,
+            activateButtonWidth,
+            activateButtonHeight,
+            StatCollector.translateToLocal("prospectingcraft.surveyor.activate"));
+        buttonList.add(activateButton);
+        updateActivateButton();
+    }
+
+    @Override
+    public void updateScreen() {
+        super.updateScreen();
+        updateActivateButton();
+    }
+
+    @Override
     protected void drawBackgroundLayer() {
         bindTexture(ProspectingCraft.mod.resourceLocation("textures/gui/seismic_recorder.png"), 256, 256);
         drawTexturedRect(0, 0, guiWidth, guiHeight, 0, 0);
-        drawColorMode();
         drawProgress();
         int cx = xSize / 2;
         setTextColor(0x004c66);
@@ -67,19 +88,16 @@ public class SeismicRecorderScreen extends BaseGui.Screen {
         }
     }
 
-    protected void drawColorMode() {
-        int x = colorModeX + 2;
-        int y = colorModeY + 2;
-        int u = te.colorMode ? 16 : 0;
-        drawTexturedRect(x, y, 12, 12, u, 256 - 32);
+    protected void updateActivateButton() {
+        if (activateButton != null) activateButton.enabled = te.getReadyStatus() == SeismicRecorderTE.ReadyStatus.RDY;
     }
 
     @Override
-    public void mousePressed(int x, int y, int button) {
-        if (x >= colorModeX && x < colorModeX + 16 && y >= colorModeY && y < colorModeY + 16) {
-            ChannelOutput data = ProspectingCraft.channel.openServerContainer("toggleColorMode");
+    protected void actionPerformed(GuiButton button) {
+        if (button.id == ACTIVATE_BUTTON_ID && button.enabled) {
+            ChannelOutput data = ProspectingCraft.channel.openServerContainer("activateSurveyor");
             data.close();
-        } else super.mousePressed(x, y, button);
+        }
     }
 
 }

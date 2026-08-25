@@ -23,9 +23,8 @@ public class SeismicRecorderContainer extends BaseContainer {
 
         inputSlotsY = topMargin, paperSlotX = leftMargin, inkSlotsX = leftMargin + 22,
 
-        colorModeX = leftMargin + 98, colorModeY = topMargin,
-
-        resultSlotX = rightMargin - 20, resultSlotY = topMargin + 4,
+        activateButtonX = leftMargin + 96, activateButtonY = topMargin - 2, activateButtonWidth = 48,
+        activateButtonHeight = 20,
 
         gunpowderSlotX = rightMargin - 20, gunpowderSlotY = topMargin + 43,
 
@@ -62,7 +61,6 @@ public class SeismicRecorderContainer extends BaseContainer {
         }
         addSlotToContainer(new ItemSlot(inv, te.gunpowderSlot, gunpowderSlotX, gunpowderSlotY, Items.gunpowder, 64));
         endContainerSlots();
-        addSlots(inv, te.resultSlot, 1, resultSlotX, resultSlotY, 1, ResultSlot.class);
     }
 
     // @Override
@@ -83,26 +81,8 @@ public class SeismicRecorderContainer extends BaseContainer {
     // }
     // }
 
-    @ServerMessageHandler("toggleColorMode")
-    public void onToggleColorMode(EntityPlayer player, ChannelInput data) {
-        te.colorMode = !te.colorMode;
-        te.markForUpdate();
+    @ServerMessageHandler("activateSurveyor")
+    public void onActivateSurveyor(EntityPlayer player, ChannelInput data) {
+        te.tryBeginScan();
     }
-
-    // -------------------------------------------------------------------------------------------
-
-    protected static class ResultSlot extends Slot {
-
-        public ResultSlot(IInventory inv, int i, int x, int y) {
-            super(inv, i, x, y);
-        }
-
-        @Override
-        public boolean isItemValid(ItemStack stack) {
-            return false;
-        }
-
-    }
-
-    // -------------------------------------------------------------------------------------------
 }
