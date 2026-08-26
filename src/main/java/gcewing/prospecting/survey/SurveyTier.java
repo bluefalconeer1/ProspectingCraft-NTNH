@@ -26,6 +26,11 @@ public enum SurveyTier {
     private int cornerFeatherWidth;
     private int cornerMinimumAlphaPercent;
 
+    interface IntegerSettings {
+
+        int getInteger(String category, String key, int defaultValue);
+    }
+
     SurveyTier(int storageId, int cellSize, int readingRadius, int tooltipLimit, int strengthBands,
         int blocksPerStrengthBand, int cornerRadius, int cornerFeatherWidth, int cornerMinimumAlphaPercent) {
         this.storageId = storageId;
@@ -79,9 +84,24 @@ public enum SurveyTier {
 
     public static void configure(BaseConfiguration config) {
         if (config == null) throw new IllegalArgumentException("Configuration must not be null");
-        BASE.loadConfig(config);
-        STEEL.loadConfig(config);
-        DESH.resetDefaults();
+        configure(new IntegerSettings() {
+
+            @Override
+            public int getInteger(String category, String key, int defaultValue) {
+                return config.getInteger(category, key, defaultValue);
+            }
+        });
+    }
+
+    static void configure(IntegerSettings settings) {
+        if (settings == null) throw new IllegalArgumentException("Configuration settings must not be null");
+        BASE.loadConfig(settings);
+        STEEL.loadConfig(settings);
+        DESH.loadConfig(settings);
+    }
+
+    static void resetAllDefaults() {
+        for (SurveyTier tier : values()) tier.resetDefaults();
     }
 
     public static SurveyTier fromStorageId(int storageId) {
@@ -89,7 +109,7 @@ public enum SurveyTier {
         throw new IllegalArgumentException("Unknown survey tier storage ID: " + storageId);
     }
 
-    private void loadConfig(BaseConfiguration config) {
+    private void loadConfig(IntegerSettings config) {
         String prefix = name().toLowerCase();
         cellSize = bounded(config.getInteger("surveyAccuracy", prefix + "CellSize", defaultCellSize), 1, 64);
         readingRadius = bounded(
@@ -97,6 +117,14 @@ public enum SurveyTier {
             0,
             64);
         tooltipLimit = bounded(config.getInteger("surveyAccuracy", prefix + "TooltipLimit", defaultTooltipLimit), 1, 5);
+        if (defaultStrengthBands == 0) {
+            strengthBands = 0;
+            blocksPerStrengthBand = 0;
+            cornerRadius = 0;
+            cornerFeatherWidth = 0;
+            cornerMinimumAlphaPercent = 100;
+            return;
+        }
         strengthBands = bounded(
             config.getInteger("surveyAccuracy", prefix + "StrengthBands", defaultStrengthBands),
             1,

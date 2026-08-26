@@ -5,11 +5,17 @@ import static org.junit.Assert.assertSame;
 
 import java.util.UUID;
 
+import org.junit.After;
 import org.junit.Test;
 
 public class SurveyViewResolverTest {
 
     private static final UUID OWNER_ID = UUID.fromString("87910713-3ba1-4f00-8000-000000000008");
+
+    @After
+    public void resetTierDefaults() {
+        SurveyTier.resetAllDefaults();
+    }
 
     @Test
     public void baseTierDisplaysEvenASingleOreAcrossItsTwentyFourBlockCell() {
@@ -117,6 +123,20 @@ public class SurveyViewResolverTest {
         assertSame(SurveyColumnSnapshot.SURVEYED_EMPTY, snapshot.getColumn(3, 3));
     }
 
+    @Test
+    public void configuredDeshCellAndRadiusProduceAContinuousRegionalView() {
+        SurveyTier.configure(deshSettings(4, 3));
+        PlayerSurveyData data = dataWithArea(SurveyTier.DESH);
+        data.getSurveyAreaAt(0, 0, 0)
+            .recordOre(5, 2, "Iron", 1);
+
+        SurveyColumnSnapshot column = SurveyChunkSnapshot.from(data, 0, 0, 0)
+            .getColumn(0, 0);
+
+        assertEquals("Iron", column.getDominantOreName());
+        assertEquals(72, column.getOreAlpha());
+    }
+
     private static SurveyColumnSnapshot resolveBaseMass(int amount) {
         PlayerSurveyData data = dataWithArea(SurveyTier.BASE);
         data.getSurveyAreaAt(0, 0, 0)
@@ -131,6 +151,18 @@ public class SurveyViewResolverTest {
         for (int z = 0; z < 64; z++) for (int x = 0; x < 64; x++) area.markSurveyed(x, z);
         data.addSurveyArea(area);
         return data;
+    }
+
+    private static SurveyTier.IntegerSettings deshSettings(final int cellSize, final int readingRadius) {
+        return new SurveyTier.IntegerSettings() {
+
+            @Override
+            public int getInteger(String category, String key, int defaultValue) {
+                if (key.equals("deshCellSize")) return cellSize;
+                if (key.equals("deshReadingRadius")) return readingRadius;
+                return defaultValue;
+            }
+        };
     }
 
     private static void placeRectangle(SurveyArea area, int minX, int minZ, int width, int height, String oreName,

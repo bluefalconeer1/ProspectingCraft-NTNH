@@ -22,6 +22,7 @@ import cpw.mods.fml.common.event.*;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
 import gcewing.prospecting.survey.ProspectingSurveyCommand;
+import gcewing.prospecting.survey.SurveyMapStyleConfig;
 import gcewing.prospecting.survey.SurveyTier;
 import gcewing.prospecting.survey.network.SurveyChunkServerHandler;
 
@@ -64,6 +65,7 @@ public class ProspectingCraft extends BaseMod<ProspectingCraftClient> {
         super.configure();
         GSAKitTE.configure(config);
         SurveyTier.configure(config);
+        SurveyMapStyleConfig.configure(config);
     }
 
     @Mod.EventHandler

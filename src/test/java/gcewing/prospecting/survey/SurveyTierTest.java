@@ -2,9 +2,15 @@ package gcewing.prospecting.survey;
 
 import static org.junit.Assert.assertEquals;
 
+import org.junit.After;
 import org.junit.Test;
 
 public class SurveyTierTest {
+
+    @After
+    public void resetTierDefaults() {
+        SurveyTier.resetAllDefaults();
+    }
 
     @Test
     public void developmentDefaultsDescribeIncreasingPrecision() {
@@ -42,5 +48,26 @@ public class SurveyTierTest {
     @Test(expected = IllegalArgumentException.class)
     public void rejectsUnknownStorageIds() {
         SurveyTier.fromStorageId(99);
+    }
+
+    @Test
+    public void deshCellSizeAndRadiusAreConfigurable() {
+        SurveyTier.configure(deshSettings(4, 3));
+
+        assertEquals(4, SurveyTier.DESH.getCellSize());
+        assertEquals(3, SurveyTier.DESH.getReadingRadius());
+        assertEquals(0, SurveyTier.DESH.getStrengthBands());
+    }
+
+    private static SurveyTier.IntegerSettings deshSettings(final int cellSize, final int readingRadius) {
+        return new SurveyTier.IntegerSettings() {
+
+            @Override
+            public int getInteger(String category, String key, int defaultValue) {
+                if (key.equals("deshCellSize")) return cellSize;
+                if (key.equals("deshReadingRadius")) return readingRadius;
+                return defaultValue;
+            }
+        };
     }
 }

@@ -13,9 +13,6 @@ final class SurveyViewResolver {
         SurveyOreSelection selection) {
         SurveyArea area = data.getSurveyAreaAt(dimensionId, x, z);
         if (area == null) return SurveyColumnSnapshot.UNSURVEYED;
-        SurveyTier tier = area.getTier();
-        if (tier == SurveyTier.DESH)
-            return SurveyColumnSnapshot.from(area.getColumn(x, z), selection, tier.getTooltipLimit());
         return resolveCoarse(area, x, z, selection);
     }
 
@@ -43,8 +40,7 @@ final class SurveyViewResolver {
         List<String> topOreNames = visibleOres.getTopOreNames(tier.getTooltipLimit());
         if (topOreNames.isEmpty()) return SurveyColumnSnapshot.SURVEYED_EMPTY;
         int dominantMass = oreMass.get(topOreNames.get(0));
-        int strengthBand = Math.min(tier.getStrengthBands(), 1 + (dominantMass - 1) / tier.getBlocksPerStrengthBand());
-        int baseAlpha = SurveyDisplayStrength.bandedAlpha(strengthBand, tier.getStrengthBands());
+        int baseAlpha = resolveBaseAlpha(tier, dominantMass);
         int displayAlpha = SurveyCellMask.roundedCornerAlpha(
             baseAlpha,
             cellSize,
@@ -54,6 +50,12 @@ final class SurveyViewResolver {
             tier.getCornerFeatherWidth(),
             tier.getCornerMinimumAlphaPercent());
         return SurveyColumnSnapshot.oreBearing(displayAlpha, topOreNames);
+    }
+
+    private static int resolveBaseAlpha(SurveyTier tier, int dominantMass) {
+        if (tier.getStrengthBands() == 0) return SurveyDisplayStrength.exactAlpha(dominantMass);
+        int strengthBand = Math.min(tier.getStrengthBands(), 1 + (dominantMass - 1) / tier.getBlocksPerStrengthBand());
+        return SurveyDisplayStrength.bandedAlpha(strengthBand, tier.getStrengthBands());
     }
 
     private static void add(Map<String, Integer> values, String oreName, int amount) {

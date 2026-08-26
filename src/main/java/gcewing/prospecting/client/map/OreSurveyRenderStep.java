@@ -45,7 +45,7 @@ public class OreSurveyRenderStep extends UniversalRenderStep<OreSurveyChunkLocat
                     COLUMN_WIDTH,
                     COLUMN_WIDTH,
                     SurveyMapStyle.getOreColor(column.getDominantOreName()),
-                    column.getOreAlpha());
+                    SurveyMapStyle.getRenderedOreAlpha(column.getOreAlpha()));
                 break;
             default:
                 throw new IllegalStateException("Unknown survey column state: " + column.getState());
@@ -53,7 +53,8 @@ public class OreSurveyRenderStep extends UniversalRenderStep<OreSurveyChunkLocat
     }
 
     private static void drawUnsurveyed(double x, double y, double width, double height) {
-        DrawUtils.drawRect(x, y, width, height, SurveyMapStyle.UNSURVEYED_COLOR, SurveyMapStyle.UNSURVEYED_ALPHA);
+        DrawUtils
+            .drawRect(x, y, width, height, SurveyMapStyle.getUnsurveyedColor(), SurveyMapStyle.getUnsurveyedAlpha());
     }
 
     SurveyColumnSnapshot getHoveredOreColumn(double mouseX, double mouseZ) {
