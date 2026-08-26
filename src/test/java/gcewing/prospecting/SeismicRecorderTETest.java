@@ -7,6 +7,8 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.UUID;
 
+import net.minecraft.block.Block;
+import net.minecraft.block.material.Material;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -62,6 +64,19 @@ public class SeismicRecorderTETest {
         assertEquals("", SeismicRecorderBlock.getTextureSuffix(SurveyTier.BASE));
         assertEquals("_steel", SeismicRecorderBlock.getTextureSuffix(SurveyTier.STEEL));
         assertEquals("_desh", SeismicRecorderBlock.getTextureSuffix(SurveyTier.DESH));
+    }
+
+    @Test
+    public void scanConvertsWorldMetadataToDroppedItemMetadata() {
+        Block leavesWithWorldStateFlags = new Block(Material.leaves) {
+
+            @Override
+            public int damageDropped(int metadata) {
+                return metadata & 3;
+            }
+        };
+
+        assertEquals(0, SeismicRecorderTE.itemMetadataForScannedBlock(leavesWithWorldStateFlags, 8));
     }
 
     @Test

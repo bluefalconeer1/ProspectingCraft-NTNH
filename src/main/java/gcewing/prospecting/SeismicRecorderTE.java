@@ -361,11 +361,15 @@ public class SeismicRecorderTE extends BaseTileInventory implements ITickable {
             int meta = world.getBlockMetadata(x, y, z);
             Item item = Item.getItemFromBlock(block);
             if (item != null) {
-                ItemStack stack = new ItemStack(item, 1, meta);
+                ItemStack stack = new ItemStack(item, 1, itemMetadataForScannedBlock(block, meta));
                 if (surveyArea != null) for (String oreName : OreDictionaryResolver.getCanonicalOreNames(stack))
                     surveyArea.recordOre(x, z, oreName, 1);
             }
         }
+    }
+
+    protected static int itemMetadataForScannedBlock(Block block, int blockMetadata) {
+        return block.damageDropped(blockMetadata);
     }
 
     protected PlayerSurveyData getPlayerSurveyData() {
