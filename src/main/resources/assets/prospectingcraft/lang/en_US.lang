@@ -30,3 +30,4 @@ prospectingcraft.map.ore_selection.none=None
 prospectingcraft.map.ore_selection.apply=Apply
 prospectingcraft.map.ore_selection.cancel=Cancel
 prospectingcraft.surveyor.activate=Start
+prospectingcraft.surveyor.not_owner=You do not own this Geological Surveyor.
