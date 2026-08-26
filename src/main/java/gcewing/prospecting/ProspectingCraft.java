@@ -108,6 +108,8 @@ public class ProspectingCraft extends BaseMod<ProspectingCraftClient> {
         blockSeismicRecorder = newBlock("seismic_recorder", SeismicRecorderBlock.class);
         blockSteelSeismicRecorder = addBlock("seismic_recorder_steel", new SeismicRecorderBlock(SurveyTier.STEEL));
         blockDeshSeismicRecorder = addBlock("seismic_recorder_desh", new SeismicRecorderBlock(SurveyTier.DESH));
+        blockSteelSeismicRecorder.setBlockTextureName(Info.modID + ":seismic_recorder");
+        blockDeshSeismicRecorder.setBlockTextureName(Info.modID + ":seismic_recorder");
         blockGeophone = addBlock("geophone", new BaseBlock(Material.wood, GeophoneTE.class));
         blockGeophone.setModelAndTextures("geophone.smeg", "minecraft:jukebox_side", "minecraft:redstone_torch_on");
         blockGeophone.setOpaque(false);

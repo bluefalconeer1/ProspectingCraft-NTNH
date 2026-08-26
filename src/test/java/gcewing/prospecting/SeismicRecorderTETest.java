@@ -58,6 +58,13 @@ public class SeismicRecorderTETest {
     }
 
     @Test
+    public void upgradedSurveyorsSelectTheirTierTextureSuffix() {
+        assertEquals("", SeismicRecorderBlock.getTextureSuffix(SurveyTier.BASE));
+        assertEquals("_steel", SeismicRecorderBlock.getTextureSuffix(SurveyTier.STEEL));
+        assertEquals("_desh", SeismicRecorderBlock.getTextureSuffix(SurveyTier.DESH));
+    }
+
+    @Test
     public void requiresAllFourInkColorsInTheirMatchingSlots() {
         TestSeismicRecorderTE recorder = readyRecorder();
 

@@ -32,10 +32,17 @@ public class SeismicRecorderBlock extends BaseBlock<SeismicRecorderTE> {
         if (surveyTier == null) throw new IllegalArgumentException("surveyTier must not be null");
         this.surveyTier = surveyTier;
         String tb = "seismic_recorder_bottom";
-        String tt = "seismic_recorder_top";
-        String tf = "seismic_recorder_front";
-        String ts = "seismic_recorder_side";
+        String suffix = getTextureSuffix(surveyTier);
+        String tt = "seismic_recorder_top" + suffix;
+        String tf = "seismic_recorder_front" + suffix;
+        String ts = "seismic_recorder_side" + suffix;
         setModelAndTextures("cube.smeg", tb, tt, tf, ts);
+    }
+
+    static String getTextureSuffix(SurveyTier surveyTier) {
+        if (surveyTier == SurveyTier.STEEL) return "_steel";
+        if (surveyTier == SurveyTier.DESH) return "_desh";
+        return "";
     }
 
     public SurveyTier getSurveyTier() {
