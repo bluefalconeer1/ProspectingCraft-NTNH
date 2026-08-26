@@ -11,9 +11,12 @@ public class NEIProspectingCraftConfig implements IConfigureNEI {
     public void loadConfig() {
         API.hideItem(new ItemStack(ProspectingCraft.blockGSAKit));
         API.hideItem(new ItemStack(ProspectingCraft.itemSeismicSurvey));
+        API.hideItem(new ItemStack(ProspectingCraft.itemSowsEar));
         API.hideItem(new ItemStack(ProspectingCraft.itemGeologicalSample));
         API.hideItem(new ItemStack(ProspectingCraft.itemProspectingPick));
         API.hideItem(new ItemStack(ProspectingCraft.itemLitmusPaper));
+        API.hideItem(new ItemStack(ProspectingCraft.itemRedtoothTransmitter));
+        API.hideItem(new ItemStack(ProspectingCraft.itemRedtoothReceiver));
         API.hideItem(new ItemStack(ProspectingCraft.itemTestTube));
         API.hideItem(new ItemStack(ProspectingCraft.itemEyeglass));
         API.hideItem(new ItemStack(ProspectingCraft.itemMagnetometer));

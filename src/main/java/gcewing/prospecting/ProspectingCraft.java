@@ -9,14 +9,11 @@ package gcewing.prospecting;
 import net.minecraft.block.*;
 import net.minecraft.block.material.Material;
 import net.minecraft.creativetab.CreativeTabs;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.*;
 import net.minecraft.item.*;
 import net.minecraft.util.*;
 import net.minecraft.world.*;
 import net.minecraftforge.common.*;
-import net.minecraftforge.event.entity.living.LivingDropsEvent;
 
 import com.github.bluefalconeer1.prospectingcraft.Tags;
 
@@ -34,7 +31,7 @@ import gcewing.prospecting.survey.network.SurveyChunkServerHandler;
     version = Tags.VERSION,
     acceptableRemoteVersions = Info.versionBounds,
     acceptedMinecraftVersions = Info.acceptedMinecraftVersions,
-    dependencies = "required-after:navigator@[1.1.6,)")
+    dependencies = "required-after:navigator@[1.1.6,);after:hbm")
 
 public class ProspectingCraft extends BaseMod<ProspectingCraftClient> {
 
@@ -134,6 +131,7 @@ public class ProspectingCraft extends BaseMod<ProspectingCraftClient> {
         itemInk[2] = newInkItem("ink_bottle_yellow");
         itemInk[3] = newInkItem("ink_bottle_cyan");
         itemSowsEar = newItem("sows_ear");
+        itemSowsEar.setCreativeTab(null);
         itemGeologicalSample = newItem("geological_sample", GeologicalSampleItem.class);
         itemGeologicalSample.setMaxDamage(16);
         itemGeologicalSample.setCreativeTab(null);
@@ -142,7 +140,9 @@ public class ProspectingCraft extends BaseMod<ProspectingCraftClient> {
         itemLitmusPaper = newItem("litmus_paper");
         itemLitmusPaper.setCreativeTab(null);
         itemRedtoothTransmitter = newItem("redtooth_transmitter");
+        itemRedtoothTransmitter.setCreativeTab(null);
         itemRedtoothReceiver = newItem("redtooth_receiver");
+        itemRedtoothReceiver.setCreativeTab(null);
         itemTestTube = newItem("test_tube");
         itemTestTube.setCreativeTab(null);
         itemEyeglass = newItem("eyeglass", EyeglassItem.class);
@@ -170,23 +170,56 @@ public class ProspectingCraft extends BaseMod<ProspectingCraftClient> {
 
     @Override
     protected void registerRecipes() {
-        newRecipe(blockGeophone, 1, "t", "e", 't', itemRedtoothTransmitter, 'e', itemSowsEar, 'w', "plankWood");
+        newRecipe(blockGeophone, 1, "t", "l", 't', Blocks.redstone_torch, 'l', Items.leather);
         newRecipe(
             blockSeismicRecorder,
             1,
-            "iri",
+            "igi",
             "wfw",
             "www",
             'i',
             "ingotIron",
-            'r',
-            itemRedtoothReceiver,
+            'g',
+            blockGeophone,
             'w',
             "plankWood",
             'f',
             Items.feather);
-        newRecipe(itemRedtoothTransmitter, 1, "t", "W", 't', Blocks.redstone_torch, 'W', "plankWood");
-        newRecipe(itemRedtoothReceiver, 1, "Wt", 't', Blocks.redstone_torch, 'W', "plankWood");
+        Item hbmCircuit = findItem("hbm:item.circuit");
+        if (hbmCircuit != null) {
+            newRecipe(
+                blockSteelSeismicRecorder,
+                1,
+                "scs",
+                "wbw",
+                "www",
+                's',
+                "ingotSteel",
+                'c',
+                new ItemStack(hbmCircuit, 1, 8),
+                'b',
+                blockSeismicRecorder,
+                'w',
+                "plankWood");
+            newRecipe(
+                blockDeshSeismicRecorder,
+                1,
+                "dcd",
+                "wsw",
+                "www",
+                'd',
+                "ingotDesh",
+                'c',
+                new ItemStack(hbmCircuit, 1, 9),
+                's',
+                blockSteelSeismicRecorder,
+                'w',
+                "plankWood");
+        } else {
+            FMLLog.warning(
+                "[%s] HBM circuit item not found; Steel and Desh Surveyor recipes were not registered",
+                Info.modID);
+        }
         newShapelessRecipe(
             itemInk[0],
             1,
@@ -213,18 +246,6 @@ public class ProspectingCraft extends BaseMod<ProspectingCraftClient> {
     protected void registerContainers() {
         seismicRecorderGui = addContainer(SeismicRecorderContainer.class, SeismicRecorderTE.class);
         gsaKitGui = addContainer(GSAKitContainer.class, GSAKitTE.class);
-    }
-
-    @SubscribeEvent
-    public void onLivingDropsEvent(LivingDropsEvent event) {
-        if (event.source instanceof EntityDamageSource) {
-            Entity srcEntity = ((EntityDamageSource) event.source).getEntity();
-            if (srcEntity != null && srcEntity instanceof EntityPlayerMP) {
-                EntityPlayerMP srcPlayer = (EntityPlayerMP) srcEntity;
-                ItemStack weapon = srcPlayer.getCurrentEquippedItem();
-                if (weapon != null && weapon.getItem() instanceof ItemAxe) event.entity.dropItem(itemSowsEar, 2);
-            }
-        }
     }
 
 }
