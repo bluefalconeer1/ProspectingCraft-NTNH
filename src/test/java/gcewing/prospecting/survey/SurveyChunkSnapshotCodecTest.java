@@ -42,7 +42,7 @@ public class SurveyChunkSnapshotCodecTest {
         SurveyColumnSnapshot oreColumn = restored.getColumn(1, 0);
         assertEquals(SurveyColumnSnapshot.State.ORE_BEARING, oreColumn.getState());
         assertEquals("Nickel", oreColumn.getDominantOreName());
-        assertEquals(7, oreColumn.getDominantOreCount());
+        assertEquals(144, oreColumn.getOreAlpha());
         assertEquals(Arrays.asList("Nickel", "Copper", "Iron", "Tin", "Gold"), oreColumn.getTopOreNames());
         assertEquals(
             "Gold",
@@ -58,16 +58,29 @@ public class SurveyChunkSnapshotCodecTest {
         assertEquals(77, encoded.length);
     }
 
+    @Test
+    public void varyingRoundedCornerOpacityDoesNotIncreaseEncodedSize() throws IOException {
+        SurveyChunkSnapshot square = new SurveyChunkSnapshot(0, 0, 0);
+        SurveyChunkSnapshot rounded = new SurveyChunkSnapshot(0, 0, 0);
+        for (int z = 0; z < SurveyChunkSnapshot.CHUNK_WIDTH; z++)
+            for (int x = 0; x < SurveyChunkSnapshot.CHUNK_WIDTH; x++) {
+                square.setColumn(x, z, SurveyColumnSnapshot.oreBearing(144, Arrays.asList("Iron")));
+                rounded.setColumn(x, z, SurveyColumnSnapshot.oreBearing(36 + (x + z) % 109, Arrays.asList("Iron")));
+            }
+
+        assertEquals(write(square).length, write(rounded).length);
+    }
+
     @Test(expected = IOException.class)
     public void rejectsUnknownFormatVersion() throws IOException {
-        SurveyChunkSnapshotCodec.read(new DataInputStream(new ByteArrayInputStream(new byte[] { 2 })));
+        SurveyChunkSnapshotCodec.read(new DataInputStream(new ByteArrayInputStream(new byte[] { 3 })));
     }
 
     @Test(expected = IOException.class)
     public void rejectsOreColumnsThatAreNotMarkedSurveyed() throws IOException {
         ByteArrayOutputStream bytes = new ByteArrayOutputStream();
         DataOutputStream output = new DataOutputStream(bytes);
-        output.writeByte(1);
+        output.writeByte(2);
         output.writeInt(0);
         output.writeInt(0);
         output.writeInt(0);

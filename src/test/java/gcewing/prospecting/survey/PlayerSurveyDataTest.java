@@ -129,6 +129,27 @@ public class PlayerSurveyDataTest {
     }
 
     @Test
+    public void higherTierSurveyCannotBeDowngradedByANewerLowTierScan() {
+        PlayerSurveyData data = newData(OWNER_ID);
+        SurveyArea desh = new SurveyArea(SurveyTier.DESH, 0, 0, 0, 1, 1);
+        desh.recordOre(0, 0, "Iron", 3);
+        data.addSurveyArea(desh);
+
+        SurveyArea newerBase = new SurveyArea(SurveyTier.BASE, 0, 0, 0, 1, 1);
+        newerBase.recordOre(0, 0, "Copper", 2);
+        data.addSurveyArea(newerBase);
+
+        assertEquals(
+            SurveyTier.DESH,
+            data.getSurveyAreaAt(0, 0, 0)
+                .getTier());
+        assertEquals(
+            3,
+            data.getColumn(0, 0, 0)
+                .getOreCount("Iron"));
+    }
+
+    @Test
     public void reportsUniqueDiscoveredOreNamesIgnoringCase() {
         PlayerSurveyData data = newData(OWNER_ID);
         SurveyArea first = new SurveyArea(0, 0, 0, 2, 1);

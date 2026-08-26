@@ -7,11 +7,14 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.UUID;
 
+import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 
 import org.junit.Test;
+
+import gcewing.prospecting.survey.SurveyTier;
 
 public class SeismicRecorderTETest {
 
@@ -37,6 +40,21 @@ public class SeismicRecorderTETest {
         assertEquals(OWNER_ID, restored.getOwnerId());
         assertEquals(expectedSurveyId, restored.activeSurveyId);
         assertEquals(7, restored.getSizeInventory());
+    }
+
+    @Test
+    public void existingSurveyorCreatesBaseTierScans() {
+        assertEquals(SurveyTier.BASE, new SeismicRecorderTE().getSurveyTier());
+    }
+
+    @Test
+    public void surveyTierComesFromThePlacedSurveyorBlock() {
+        SeismicRecorderBlock steelSurveyor = new SeismicRecorderBlock(SurveyTier.STEEL);
+        SeismicRecorderBlock deshSurveyor = new SeismicRecorderBlock(SurveyTier.DESH);
+
+        assertEquals(SurveyTier.STEEL, SeismicRecorderTE.surveyTierForBlock(steelSurveyor));
+        assertEquals(SurveyTier.DESH, SeismicRecorderTE.surveyTierForBlock(deshSurveyor));
+        assertEquals(SurveyTier.BASE, SeismicRecorderTE.surveyTierForBlock(Blocks.stone));
     }
 
     @Test

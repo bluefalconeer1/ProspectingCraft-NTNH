@@ -45,7 +45,7 @@ public class OreSurveyRenderStep extends UniversalRenderStep<OreSurveyChunkLocat
                     COLUMN_WIDTH,
                     COLUMN_WIDTH,
                     SurveyMapStyle.getOreColor(column.getDominantOreName()),
-                    SurveyMapStyle.getOreAlpha(column.getDominantOreCount()));
+                    column.getOreAlpha());
                 break;
             default:
                 throw new IllegalStateException("Unknown survey column state: " + column.getState());

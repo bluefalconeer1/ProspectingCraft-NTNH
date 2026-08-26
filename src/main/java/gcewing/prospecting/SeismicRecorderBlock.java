@@ -15,17 +15,31 @@ import net.minecraft.tileentity.*;
 import net.minecraft.util.*;
 import net.minecraft.world.*;
 
+import gcewing.prospecting.survey.SurveyTier;
+
 // import gcewing.prospecting.BaseMod.ModelSpec;
 
 public class SeismicRecorderBlock extends BaseBlock<SeismicRecorderTE> {
 
+    private final SurveyTier surveyTier;
+
     public SeismicRecorderBlock() {
+        this(SurveyTier.BASE);
+    }
+
+    public SeismicRecorderBlock(SurveyTier surveyTier) {
         super(Material.wood, BaseOrientation.orient4WaysByState, SeismicRecorderTE.class);
+        if (surveyTier == null) throw new IllegalArgumentException("surveyTier must not be null");
+        this.surveyTier = surveyTier;
         String tb = "seismic_recorder_bottom";
         String tt = "seismic_recorder_top";
         String tf = "seismic_recorder_front";
         String ts = "seismic_recorder_side";
         setModelAndTextures("cube.smeg", tb, tt, tf, ts);
+    }
+
+    public SurveyTier getSurveyTier() {
+        return surveyTier;
     }
 
     @Override

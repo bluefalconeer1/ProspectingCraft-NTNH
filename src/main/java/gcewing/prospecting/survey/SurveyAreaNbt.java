@@ -11,7 +11,8 @@ import net.minecraft.nbt.NBTTagList;
 
 public final class SurveyAreaNbt {
 
-    private static final int FORMAT_VERSION = 2;
+    private static final int FORMAT_VERSION = 3;
+    private static final int LEGACY_EXACT_FORMAT_VERSION = 2;
     private static final int COMPOUND_TAG_ID = 10;
 
     private SurveyAreaNbt() {}
@@ -23,6 +24,10 @@ public final class SurveyAreaNbt {
             "surveyId",
             area.getSurveyId()
                 .toString());
+        nbt.setInteger(
+            "tier",
+            area.getTier()
+                .getStorageId());
         nbt.setInteger("dimensionId", area.getDimensionId());
         nbt.setInteger("minX", area.getMinX());
         nbt.setInteger("minZ", area.getMinZ());
@@ -54,11 +59,15 @@ public final class SurveyAreaNbt {
 
     public static SurveyArea read(NBTTagCompound nbt) {
         int formatVersion = nbt.getInteger("formatVersion");
-        if (formatVersion != FORMAT_VERSION)
+        if (formatVersion != FORMAT_VERSION && formatVersion != LEGACY_EXACT_FORMAT_VERSION)
             throw new IllegalArgumentException("Unsupported survey data version: " + formatVersion);
+
+        SurveyTier tier = formatVersion == LEGACY_EXACT_FORMAT_VERSION ? SurveyTier.DESH
+            : SurveyTier.fromStorageId(nbt.getInteger("tier"));
 
         SurveyArea area = new SurveyArea(
             UUID.fromString(nbt.getString("surveyId")),
+            tier,
             nbt.getInteger("dimensionId"),
             nbt.getInteger("minX"),
             nbt.getInteger("minZ"),

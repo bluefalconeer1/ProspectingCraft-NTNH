@@ -1,4 +1,6 @@
 tile.prospectingcraft:seismic_recorder.name=Geological Surveyor
+tile.prospectingcraft:seismic_recorder_steel.name=Steel Geological Surveyor
+tile.prospectingcraft:seismic_recorder_desh.name=Desh Geological Surveyor
 tile.prospectingcraft:geophone.name=Geophone
 tile.prospectingcraft:gsa_kit.name=Geological Sample Analysis Kit
 item.prospectingcraft:sows_ear.name=Sow's Ear

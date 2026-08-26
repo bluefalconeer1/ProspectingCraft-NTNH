@@ -24,6 +24,7 @@ import net.minecraftforge.oredict.OreDictionary;
 import gcewing.prospecting.survey.OreDictionaryResolver;
 import gcewing.prospecting.survey.PlayerSurveyData;
 import gcewing.prospecting.survey.SurveyArea;
+import gcewing.prospecting.survey.SurveyTier;
 import gcewing.prospecting.survey.network.SurveyChunkServerHandler;
 
 public class SeismicRecorderTE extends BaseTileInventory implements ITickable {
@@ -234,6 +235,7 @@ public class SeismicRecorderTE extends BaseTileInventory implements ITickable {
         // System.out.printf("SeismicRecorderTE.beginScan\n");
         if (ownerId == null) return;
         SurveyArea surveyArea = new SurveyArea(
+            getSurveyTier(),
             BaseUtils.getWorldDimensionId(worldObj),
             getX() - 64,
             getZ() - 64,
@@ -247,6 +249,16 @@ public class SeismicRecorderTE extends BaseTileInventory implements ITickable {
         activated = true;
         phase = 0;
         markChanged();
+    }
+
+    protected SurveyTier getSurveyTier() {
+        if (worldObj == null) return SurveyTier.BASE;
+        return surveyTierForBlock(worldObj.getBlock(getX(), getY(), getZ()));
+    }
+
+    static SurveyTier surveyTierForBlock(Block block) {
+        if (block instanceof SeismicRecorderBlock) return ((SeismicRecorderBlock) block).getSurveyTier();
+        return SurveyTier.BASE;
     }
 
     protected void fireGunpowder() {

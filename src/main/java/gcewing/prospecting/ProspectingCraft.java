@@ -25,6 +25,7 @@ import cpw.mods.fml.common.event.*;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
 import gcewing.prospecting.survey.ProspectingSurveyCommand;
+import gcewing.prospecting.survey.SurveyTier;
 import gcewing.prospecting.survey.network.SurveyChunkServerHandler;
 
 @Mod(
@@ -65,6 +66,7 @@ public class ProspectingCraft extends BaseMod<ProspectingCraftClient> {
     void configure() {
         super.configure();
         GSAKitTE.configure(config);
+        SurveyTier.configure(config);
     }
 
     @Mod.EventHandler
@@ -98,11 +100,14 @@ public class ProspectingCraft extends BaseMod<ProspectingCraftClient> {
         return new ProspectingCraftClient(this);
     }
 
-    public static BaseBlock blockSeismicRecorder, blockGeophone, blockGSAKit;
+    public static BaseBlock blockSeismicRecorder, blockSteelSeismicRecorder, blockDeshSeismicRecorder, blockGeophone,
+        blockGSAKit;
 
     @Override
     protected void registerBlocks() {
         blockSeismicRecorder = newBlock("seismic_recorder", SeismicRecorderBlock.class);
+        blockSteelSeismicRecorder = addBlock("seismic_recorder_steel", new SeismicRecorderBlock(SurveyTier.STEEL));
+        blockDeshSeismicRecorder = addBlock("seismic_recorder_desh", new SeismicRecorderBlock(SurveyTier.DESH));
         blockGeophone = addBlock("geophone", new BaseBlock(Material.wood, GeophoneTE.class));
         blockGeophone.setModelAndTextures("geophone.smeg", "minecraft:jukebox_side", "minecraft:redstone_torch_on");
         blockGeophone.setOpaque(false);

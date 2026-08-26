@@ -8,10 +8,9 @@ import java.util.List;
 
 public final class SurveyChunkSnapshotCodec {
 
-    private static final int FORMAT_VERSION = 1;
+    private static final int FORMAT_VERSION = 2;
     private static final int BITS_PER_MASK_PART = 64;
     private static final int MASK_PART_COUNT = SurveyChunkSnapshot.COLUMN_COUNT / BITS_PER_MASK_PART;
-    private static final int MAX_UNSIGNED_SHORT = 0xffff;
     private static final int MAX_TOP_ORE_NAMES = 5;
 
     private SurveyChunkSnapshotCodec() {}
@@ -61,22 +60,22 @@ public final class SurveyChunkSnapshotCodec {
     }
 
     private static void writeOreColumn(DataOutput output, SurveyColumnSnapshot column) throws IOException {
-        int dominantOreCount = column.getDominantOreCount();
-        if (dominantOreCount <= 0 || dominantOreCount > MAX_UNSIGNED_SHORT)
-            throw new IOException("Dominant ore count is outside the supported range: " + dominantOreCount);
+        int oreAlpha = column.getOreAlpha();
+        if (oreAlpha <= 0 || oreAlpha > 255)
+            throw new IOException("Ore alpha is outside the supported range: " + oreAlpha);
         List<String> topOreNames = column.getTopOreNames();
         if (topOreNames.isEmpty() || topOreNames.size() > MAX_TOP_ORE_NAMES)
             throw new IOException("Ore-bearing columns require between one and five ore names");
 
-        output.writeShort(dominantOreCount);
+        output.writeByte(oreAlpha);
         output.writeByte(topOreNames.size());
         for (String oreName : topOreNames) output.writeUTF(oreName);
     }
 
     private static SurveyColumnSnapshot readOreColumn(DataInput input) throws IOException {
-        int dominantOreCount = input.readUnsignedShort();
+        int oreAlpha = input.readUnsignedByte();
         int nameCount = input.readUnsignedByte();
-        if (dominantOreCount <= 0) throw new IOException("Dominant ore count must be positive");
+        if (oreAlpha <= 0) throw new IOException("Ore alpha must be positive");
         if (nameCount <= 0 || nameCount > MAX_TOP_ORE_NAMES)
             throw new IOException("Invalid top ore name count: " + nameCount);
 
@@ -87,7 +86,7 @@ public final class SurveyChunkSnapshotCodec {
             if (topOreNames.contains(oreName)) throw new IOException("Ore names must be unique");
             topOreNames.add(oreName);
         }
-        return SurveyColumnSnapshot.oreBearing(dominantOreCount, topOreNames);
+        return SurveyColumnSnapshot.oreBearing(oreAlpha, topOreNames);
     }
 
     private static void writeMask(DataOutput output, long[] mask) throws IOException {

@@ -1,0 +1,46 @@
+package gcewing.prospecting.survey;
+
+import static org.junit.Assert.assertEquals;
+
+import org.junit.Test;
+
+public class SurveyTierTest {
+
+    @Test
+    public void developmentDefaultsDescribeIncreasingPrecision() {
+        assertEquals(24, SurveyTier.BASE.getCellSize());
+        assertEquals(16, SurveyTier.BASE.getReadingRadius());
+        assertEquals(1, SurveyTier.BASE.getTooltipLimit());
+        assertEquals(3, SurveyTier.BASE.getStrengthBands());
+        assertEquals(8, SurveyTier.BASE.getBlocksPerStrengthBand());
+        assertEquals(6, SurveyTier.BASE.getCornerRadius());
+        assertEquals(3, SurveyTier.BASE.getCornerFeatherWidth());
+        assertEquals(25, SurveyTier.BASE.getCornerMinimumAlphaPercent());
+
+        assertEquals(12, SurveyTier.STEEL.getCellSize());
+        assertEquals(6, SurveyTier.STEEL.getReadingRadius());
+        assertEquals(3, SurveyTier.STEEL.getTooltipLimit());
+        assertEquals(5, SurveyTier.STEEL.getStrengthBands());
+        assertEquals(4, SurveyTier.STEEL.getBlocksPerStrengthBand());
+        assertEquals(3, SurveyTier.STEEL.getCornerRadius());
+        assertEquals(2, SurveyTier.STEEL.getCornerFeatherWidth());
+        assertEquals(25, SurveyTier.STEEL.getCornerMinimumAlphaPercent());
+
+        assertEquals(1, SurveyTier.DESH.getCellSize());
+        assertEquals(0, SurveyTier.DESH.getReadingRadius());
+        assertEquals(5, SurveyTier.DESH.getTooltipLimit());
+        assertEquals(0, SurveyTier.DESH.getStrengthBands());
+        assertEquals(0, SurveyTier.DESH.getBlocksPerStrengthBand());
+        assertEquals(0, SurveyTier.DESH.getCornerRadius());
+    }
+
+    @Test
+    public void storageIdsDoNotDependOnEnumNames() {
+        for (SurveyTier tier : SurveyTier.values()) assertEquals(tier, SurveyTier.fromStorageId(tier.getStorageId()));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void rejectsUnknownStorageIds() {
+        SurveyTier.fromStorageId(99);
+    }
+}

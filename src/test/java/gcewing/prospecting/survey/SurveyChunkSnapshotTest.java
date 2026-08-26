@@ -37,13 +37,13 @@ public class SurveyChunkSnapshotTest {
         SurveyColumnSnapshot oreColumn = snapshot.getColumn(1, 0);
         assertEquals(SurveyColumnSnapshot.State.ORE_BEARING, oreColumn.getState());
         assertEquals("Nickel", oreColumn.getDominantOreName());
-        assertEquals(5, oreColumn.getDominantOreCount());
+        assertEquals(120, oreColumn.getOreAlpha());
         assertEquals(Arrays.asList("Nickel", "Copper", "Iron", "Tin", "Gold"), oreColumn.getTopOreNames());
 
         SurveyColumnSnapshot unsurveyed = snapshot.getColumn(2, 0);
         assertSame(SurveyColumnSnapshot.UNSURVEYED, unsurveyed);
         assertNull(unsurveyed.getDominantOreName());
-        assertEquals(0, unsurveyed.getDominantOreCount());
+        assertEquals(0, unsurveyed.getOreAlpha());
     }
 
     @Test
@@ -88,7 +88,7 @@ public class SurveyChunkSnapshotTest {
 
         assertEquals(SurveyColumnSnapshot.State.ORE_BEARING, column.getState());
         assertEquals("Iron", column.getDominantOreName());
-        assertEquals(4, column.getDominantOreCount());
+        assertEquals(108, column.getOreAlpha());
         assertEquals(Arrays.asList("Iron"), column.getTopOreNames());
         assertEquals(
             10,

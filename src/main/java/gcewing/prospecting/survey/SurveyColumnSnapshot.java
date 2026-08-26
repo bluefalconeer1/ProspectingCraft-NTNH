@@ -27,13 +27,13 @@ public class SurveyColumnSnapshot {
 
     private final State state;
     private final String dominantOreName;
-    private final int dominantOreCount;
+    private final int oreAlpha;
     private final List<String> topOreNames;
 
-    private SurveyColumnSnapshot(State state, String dominantOreName, int dominantOreCount, List<String> topOreNames) {
+    private SurveyColumnSnapshot(State state, String dominantOreName, int oreAlpha, List<String> topOreNames) {
         this.state = state;
         this.dominantOreName = dominantOreName;
-        this.dominantOreCount = dominantOreCount;
+        this.oreAlpha = oreAlpha;
         this.topOreNames = topOreNames;
     }
 
@@ -42,18 +42,24 @@ public class SurveyColumnSnapshot {
     }
 
     public static SurveyColumnSnapshot from(SurveyColumn column, SurveyOreSelection selection) {
-        if (column == null) return UNSURVEYED;
-        if (selection == null) throw new IllegalArgumentException("Survey ore selection must not be null");
-
-        List<String> topOreNames = Collections
-            .unmodifiableList(new ArrayList<String>(column.getTopOreNames(TOP_ORE_LIMIT, selection)));
-        if (topOreNames.isEmpty()) return SURVEYED_EMPTY;
-        String dominantOreName = topOreNames.get(0);
-        return oreBearing(column.getOreCount(dominantOreName), topOreNames);
+        return from(column, selection, TOP_ORE_LIMIT);
     }
 
-    static SurveyColumnSnapshot oreBearing(int dominantOreCount, List<String> topOreNames) {
-        if (dominantOreCount <= 0) throw new IllegalArgumentException("Dominant ore count must be positive");
+    public static SurveyColumnSnapshot from(SurveyColumn column, SurveyOreSelection selection, int topOreLimit) {
+        if (column == null) return UNSURVEYED;
+        if (selection == null) throw new IllegalArgumentException("Survey ore selection must not be null");
+        if (topOreLimit <= 0 || topOreLimit > TOP_ORE_LIMIT)
+            throw new IllegalArgumentException("Top ore limit must be between one and five");
+
+        List<String> topOreNames = Collections
+            .unmodifiableList(new ArrayList<String>(column.getTopOreNames(topOreLimit, selection)));
+        if (topOreNames.isEmpty()) return SURVEYED_EMPTY;
+        String dominantOreName = topOreNames.get(0);
+        return oreBearing(SurveyDisplayStrength.exactAlpha(column.getOreCount(dominantOreName)), topOreNames);
+    }
+
+    static SurveyColumnSnapshot oreBearing(int oreAlpha, List<String> topOreNames) {
+        if (oreAlpha <= 0 || oreAlpha > 255) throw new IllegalArgumentException("Ore alpha must be between 1 and 255");
         if (topOreNames == null || topOreNames.isEmpty() || topOreNames.size() > TOP_ORE_LIMIT)
             throw new IllegalArgumentException("Ore-bearing columns require between one and five ore names");
         List<String> names = new ArrayList<String>(topOreNames.size());
@@ -63,7 +69,7 @@ public class SurveyColumnSnapshot {
             names.add(oreName);
         }
         List<String> immutableNames = Collections.unmodifiableList(names);
-        return new SurveyColumnSnapshot(State.ORE_BEARING, immutableNames.get(0), dominantOreCount, immutableNames);
+        return new SurveyColumnSnapshot(State.ORE_BEARING, immutableNames.get(0), oreAlpha, immutableNames);
     }
 
     public State getState() {
@@ -74,8 +80,8 @@ public class SurveyColumnSnapshot {
         return dominantOreName;
     }
 
-    public int getDominantOreCount() {
-        return dominantOreCount;
+    public int getOreAlpha() {
+        return oreAlpha;
     }
 
     public List<String> getTopOreNames() {

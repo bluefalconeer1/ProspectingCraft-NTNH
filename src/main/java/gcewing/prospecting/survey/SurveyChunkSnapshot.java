@@ -31,8 +31,8 @@ public class SurveyChunkSnapshot {
         int minBlockX = chunkX << 4;
         int minBlockZ = chunkZ << 4;
         for (int localZ = 0; localZ < CHUNK_WIDTH; localZ++) for (int localX = 0; localX < CHUNK_WIDTH; localX++) {
-            SurveyColumn column = data.getColumn(dimensionId, minBlockX + localX, minBlockZ + localZ);
-            snapshot.columns[getIndex(localX, localZ)] = SurveyColumnSnapshot.from(column, selection);
+            snapshot.columns[getIndex(localX, localZ)] = SurveyViewResolver
+                .resolve(data, dimensionId, minBlockX + localX, minBlockZ + localZ, selection);
         }
         return snapshot;
     }

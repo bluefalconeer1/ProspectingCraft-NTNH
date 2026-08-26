@@ -4,15 +4,14 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import gcewing.prospecting.survey.SurveyDisplayStrength;
+
 public final class SurveyMapStyle {
 
     public static final int UNSURVEYED_COLOR = 0x777777;
     public static final int UNSURVEYED_ALPHA = 110;
 
     private static final int UNKNOWN_ORE_COLOR = 0xB06DD6;
-    private static final int MIN_ORE_ALPHA = 72;
-    private static final int ORE_ALPHA_PER_ADDITIONAL_BLOCK = 12;
-    private static final int MAX_ORE_ALPHA = 216;
     private static final Map<String, Integer> ORE_COLORS = createOreColors();
 
     private SurveyMapStyle() {}
@@ -23,9 +22,7 @@ public final class SurveyMapStyle {
     }
 
     public static int getOreAlpha(int dominantOreCount) {
-        if (dominantOreCount <= 0) throw new IllegalArgumentException("Dominant ore count must be positive");
-        long alpha = MIN_ORE_ALPHA + (long) (dominantOreCount - 1) * ORE_ALPHA_PER_ADDITIONAL_BLOCK;
-        return (int) Math.min(alpha, MAX_ORE_ALPHA);
+        return SurveyDisplayStrength.exactAlpha(dominantOreCount);
     }
 
     private static Map<String, Integer> createOreColors() {

@@ -12,7 +12,7 @@ public class SurveyAreaNbtTest {
 
     @Test
     public void surveyAreaSurvivesNbtRoundTrip() {
-        SurveyArea original = new SurveyArea(7, -64, 32, 3, 2);
+        SurveyArea original = new SurveyArea(SurveyTier.STEEL, 7, -64, 32, 3, 2);
         original.markSurveyed(-64, 32);
         original.recordOre(-63, 32, "Nickel", 3);
         original.recordOre(-63, 32, "Iron", 1);
@@ -22,6 +22,7 @@ public class SurveyAreaNbtTest {
         SurveyArea restored = SurveyAreaNbt.read(nbt);
 
         assertEquals(original.getSurveyId(), restored.getSurveyId());
+        assertEquals(SurveyTier.STEEL, restored.getTier());
         assertEquals(7, restored.getDimensionId());
         assertEquals(-64, restored.getMinX());
         assertEquals(32, restored.getMinZ());
@@ -44,6 +45,23 @@ public class SurveyAreaNbtTest {
             restored.getColumn(-62, 33)
                 .getOreCount("Copper"));
         assertFalse(restored.isSurveyed(-64, 33));
+    }
+
+    @Test
+    public void oldExactSurveyDataDefaultsToDeshTier() {
+        SurveyArea original = new SurveyArea(SurveyTier.BASE, 0, 0, 0, 1, 1);
+        original.recordOre(0, 0, "Iron", 3);
+        NBTTagCompound nbt = SurveyAreaNbt.write(original);
+        nbt.setInteger("formatVersion", 2);
+        nbt.removeTag("tier");
+
+        SurveyArea restored = SurveyAreaNbt.read(nbt);
+
+        assertEquals(SurveyTier.DESH, restored.getTier());
+        assertEquals(
+            3,
+            restored.getColumn(0, 0)
+                .getOreCount("Iron"));
     }
 
     @Test

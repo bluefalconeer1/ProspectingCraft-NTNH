@@ -17,14 +17,21 @@ import gcewing.prospecting.survey.network.SurveyChunkServerHandler;
 /** Player ore-display controls and temporary operator survey diagnostics. */
 public class ProspectingSurveyCommand extends CommandBase {
 
+    private static final List<String> COMMAND_ALIASES = Collections.singletonList("ps");
+
     @Override
     public String getCommandName() {
         return "pcsurvey";
     }
 
     @Override
+    public List<String> getCommandAliases() {
+        return COMMAND_ALIASES;
+    }
+
+    @Override
     public String getCommandUsage(ICommandSender sender) {
-        return "/pcsurvey ores <all|none|only <ore>...> | /pcsurvey column <x> <z>";
+        return "/pcsurvey ores <all|none|only <ore>...> | /pcsurvey column <x> <z> | /ps check <x> <z>";
     }
 
     @Override
@@ -38,11 +45,15 @@ public class ProspectingSurveyCommand extends CommandBase {
             processOreSelection(sender, arguments);
             return;
         }
-        if (arguments.length == 3 && "column".equalsIgnoreCase(arguments[0])) {
+        if (arguments.length == 3 && isColumnDiagnostic(arguments[0])) {
             processColumn(sender, arguments);
             return;
         }
         throw new WrongUsageException(getCommandUsage(sender));
+    }
+
+    static boolean isColumnDiagnostic(String subcommand) {
+        return "column".equalsIgnoreCase(subcommand) || "check".equalsIgnoreCase(subcommand);
     }
 
     private void processOreSelection(ICommandSender sender, String[] arguments) {

@@ -115,11 +115,22 @@ public class PlayerSurveyData extends WorldSavedData {
     }
 
     public SurveyColumn getColumn(int dimensionId, int x, int z) {
+        SurveyArea area = getSurveyAreaAt(dimensionId, x, z);
+        return area == null ? null : area.getColumn(x, z);
+    }
+
+    public SurveyArea getSurveyAreaAt(int dimensionId, int x, int z) {
+        SurveyArea bestArea = null;
         for (int i = surveyAreas.size() - 1; i >= 0; i--) {
             SurveyArea area = surveyAreas.get(i);
-            if (area.getDimensionId() == dimensionId && area.isSurveyed(x, z)) return area.getColumn(x, z);
+            if (area.getDimensionId() == dimensionId && area.isSurveyed(x, z)
+                && (bestArea == null || area.getTier()
+                    .getStorageId()
+                    > bestArea.getTier()
+                        .getStorageId()))
+                bestArea = area;
         }
-        return null;
+        return bestArea;
     }
 
     @Override
