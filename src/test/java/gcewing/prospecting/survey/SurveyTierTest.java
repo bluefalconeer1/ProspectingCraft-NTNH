@@ -19,25 +19,18 @@ public class SurveyTierTest {
         assertEquals(1, SurveyTier.BASE.getTooltipLimit());
         assertEquals(3, SurveyTier.BASE.getStrengthBands());
         assertEquals(8, SurveyTier.BASE.getBlocksPerStrengthBand());
-        assertEquals(6, SurveyTier.BASE.getCornerRadius());
-        assertEquals(3, SurveyTier.BASE.getCornerFeatherWidth());
-        assertEquals(25, SurveyTier.BASE.getCornerMinimumAlphaPercent());
 
         assertEquals(12, SurveyTier.STEEL.getCellSize());
         assertEquals(6, SurveyTier.STEEL.getReadingRadius());
         assertEquals(3, SurveyTier.STEEL.getTooltipLimit());
         assertEquals(5, SurveyTier.STEEL.getStrengthBands());
         assertEquals(4, SurveyTier.STEEL.getBlocksPerStrengthBand());
-        assertEquals(3, SurveyTier.STEEL.getCornerRadius());
-        assertEquals(2, SurveyTier.STEEL.getCornerFeatherWidth());
-        assertEquals(25, SurveyTier.STEEL.getCornerMinimumAlphaPercent());
 
         assertEquals(1, SurveyTier.DESH.getCellSize());
         assertEquals(0, SurveyTier.DESH.getReadingRadius());
         assertEquals(5, SurveyTier.DESH.getTooltipLimit());
         assertEquals(0, SurveyTier.DESH.getStrengthBands());
         assertEquals(0, SurveyTier.DESH.getBlocksPerStrengthBand());
-        assertEquals(0, SurveyTier.DESH.getCornerRadius());
     }
 
     @Test

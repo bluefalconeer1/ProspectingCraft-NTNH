@@ -4,9 +4,9 @@ import gcewing.prospecting.BaseConfiguration;
 
 public enum SurveyTier {
 
-    BASE(0, 24, 16, 1, 3, 8, 6, 3, 25),
-    STEEL(1, 12, 6, 3, 5, 4, 3, 2, 25),
-    DESH(2, 1, 0, 5, 0, 0, 0, 0, 100);
+    BASE(0, 24, 16, 1, 3, 8),
+    STEEL(1, 12, 6, 3, 5, 4),
+    DESH(2, 1, 0, 5, 0, 0);
 
     private final int storageId;
     private final int defaultCellSize;
@@ -14,17 +14,11 @@ public enum SurveyTier {
     private final int defaultTooltipLimit;
     private final int defaultStrengthBands;
     private final int defaultBlocksPerStrengthBand;
-    private final int defaultCornerRadius;
-    private final int defaultCornerFeatherWidth;
-    private final int defaultCornerMinimumAlphaPercent;
     private int cellSize;
     private int readingRadius;
     private int tooltipLimit;
     private int strengthBands;
     private int blocksPerStrengthBand;
-    private int cornerRadius;
-    private int cornerFeatherWidth;
-    private int cornerMinimumAlphaPercent;
 
     interface IntegerSettings {
 
@@ -32,16 +26,13 @@ public enum SurveyTier {
     }
 
     SurveyTier(int storageId, int cellSize, int readingRadius, int tooltipLimit, int strengthBands,
-        int blocksPerStrengthBand, int cornerRadius, int cornerFeatherWidth, int cornerMinimumAlphaPercent) {
+        int blocksPerStrengthBand) {
         this.storageId = storageId;
         defaultCellSize = cellSize;
         defaultReadingRadius = readingRadius;
         defaultTooltipLimit = tooltipLimit;
         defaultStrengthBands = strengthBands;
         defaultBlocksPerStrengthBand = blocksPerStrengthBand;
-        defaultCornerRadius = cornerRadius;
-        defaultCornerFeatherWidth = cornerFeatherWidth;
-        defaultCornerMinimumAlphaPercent = cornerMinimumAlphaPercent;
         resetDefaults();
     }
 
@@ -68,18 +59,6 @@ public enum SurveyTier {
 
     public int getBlocksPerStrengthBand() {
         return blocksPerStrengthBand;
-    }
-
-    public int getCornerRadius() {
-        return cornerRadius;
-    }
-
-    public int getCornerFeatherWidth() {
-        return cornerFeatherWidth;
-    }
-
-    public int getCornerMinimumAlphaPercent() {
-        return cornerMinimumAlphaPercent;
     }
 
     public static void configure(BaseConfiguration config) {
@@ -120,9 +99,6 @@ public enum SurveyTier {
         if (defaultStrengthBands == 0) {
             strengthBands = 0;
             blocksPerStrengthBand = 0;
-            cornerRadius = 0;
-            cornerFeatherWidth = 0;
-            cornerMinimumAlphaPercent = 100;
             return;
         }
         strengthBands = bounded(
@@ -133,19 +109,6 @@ public enum SurveyTier {
             config.getInteger("surveyAccuracy", prefix + "BlocksPerStrengthBand", defaultBlocksPerStrengthBand),
             1,
             65535);
-        cornerRadius = bounded(
-            config.getInteger("surveyAccuracy", prefix + "CornerRadius", defaultCornerRadius),
-            0,
-            cellSize / 2);
-        cornerFeatherWidth = cornerRadius == 0 ? 0
-            : bounded(
-                config.getInteger("surveyAccuracy", prefix + "CornerFeatherWidth", defaultCornerFeatherWidth),
-                1,
-                cornerRadius);
-        cornerMinimumAlphaPercent = bounded(
-            config.getInteger("surveyAccuracy", prefix + "CornerMinimumAlphaPercent", defaultCornerMinimumAlphaPercent),
-            1,
-            100);
     }
 
     private void resetDefaults() {
@@ -154,9 +117,6 @@ public enum SurveyTier {
         tooltipLimit = defaultTooltipLimit;
         strengthBands = defaultStrengthBands;
         blocksPerStrengthBand = defaultBlocksPerStrengthBand;
-        cornerRadius = defaultCornerRadius;
-        cornerFeatherWidth = defaultCornerFeatherWidth;
-        cornerMinimumAlphaPercent = defaultCornerMinimumAlphaPercent;
     }
 
     private static int bounded(int value, int minimum, int maximum) {

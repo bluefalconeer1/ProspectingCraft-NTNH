@@ -54,7 +54,7 @@ public class SurveyMapStyleConfigTest {
         colors.put("Iron", "broken");
         SurveyMapStyleConfig.configure(settings(100, 110, "also-broken", "invalid", colors));
 
-        assertEquals(0xD8C7B8, SurveyMapStyleConfig.getOreColor("Iron"));
+        assertEquals(0x999999, SurveyMapStyleConfig.getOreColor("Iron"));
         assertEquals(0x777777, SurveyMapStyleConfig.getUnsurveyedColor());
         assertEquals(0xB06DD6, SurveyMapStyleConfig.getOreColor("UnknownOre"));
     }

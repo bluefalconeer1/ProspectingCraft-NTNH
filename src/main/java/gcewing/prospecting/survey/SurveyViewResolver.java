@@ -40,16 +40,7 @@ final class SurveyViewResolver {
         List<String> topOreNames = visibleOres.getTopOreNames(tier.getTooltipLimit());
         if (topOreNames.isEmpty()) return SurveyColumnSnapshot.SURVEYED_EMPTY;
         int dominantMass = oreMass.get(topOreNames.get(0));
-        int baseAlpha = resolveBaseAlpha(tier, dominantMass);
-        int displayAlpha = SurveyCellMask.roundedCornerAlpha(
-            baseAlpha,
-            cellSize,
-            x - cellMinX,
-            z - cellMinZ,
-            tier.getCornerRadius(),
-            tier.getCornerFeatherWidth(),
-            tier.getCornerMinimumAlphaPercent());
-        return SurveyColumnSnapshot.oreBearing(displayAlpha, topOreNames);
+        return SurveyColumnSnapshot.oreBearing(resolveBaseAlpha(tier, dominantMass), topOreNames);
     }
 
     private static int resolveBaseAlpha(SurveyTier tier, int dominantMass) {

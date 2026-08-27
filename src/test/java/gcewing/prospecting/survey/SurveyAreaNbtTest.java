@@ -5,6 +5,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
 
 import org.junit.Test;
 
@@ -88,6 +89,34 @@ public class SurveyAreaNbtTest {
     }
 
     @Test
+    public void oldThoriumAliasesForOneBlockKeepOneCountWhenLoaded() {
+        SurveyArea original = new SurveyArea(SurveyTier.STEEL, 0, 0, 0, 1, 1);
+        original.recordOre(0, 0, "Thorium", 4);
+        NBTTagCompound nbt = SurveyAreaNbt.write(original);
+        nbt.setInteger("formatVersion", 3);
+        NBTTagList ores = nbt.getTagList("columns", 10)
+            .getCompoundTagAt(0)
+            .getTagList("ores", 10);
+        ores.appendTag(oreEntry("Thorium232", 4));
+        ores.appendTag(oreEntry("Th232", 4));
+
+        SurveyArea restored = SurveyAreaNbt.read(nbt);
+
+        assertEquals(
+            4,
+            restored.getColumn(0, 0)
+                .getOreCount("Thorium"));
+        NBTTagCompound rewritten = SurveyAreaNbt.write(restored);
+        assertEquals(4, rewritten.getInteger("formatVersion"));
+        assertEquals(
+            1,
+            rewritten.getTagList("columns", 10)
+                .getCompoundTagAt(0)
+                .getTagList("ores", 10)
+                .tagCount());
+    }
+
+    @Test
     public void oldVolcanicOreEntriesAreIgnoredWhenLoaded() {
         SurveyArea original = new SurveyArea(0, 0, 0, 1, 1);
         original.recordOre(0, 0, "Iron", 3);
@@ -112,5 +141,12 @@ public class SurveyAreaNbtTest {
         nbt.setInteger("formatVersion", 99);
 
         SurveyAreaNbt.read(nbt);
+    }
+
+    private static NBTTagCompound oreEntry(String name, int count) {
+        NBTTagCompound ore = new NBTTagCompound();
+        ore.setString("name", name);
+        ore.setInteger("count", count);
+        return ore;
     }
 }

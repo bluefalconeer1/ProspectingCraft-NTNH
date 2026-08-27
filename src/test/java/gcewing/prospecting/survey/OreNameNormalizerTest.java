@@ -38,6 +38,13 @@ public class OreNameNormalizerTest {
     }
 
     @Test
+    public void mergesHbmThoriumAliasesForTheSameBlock() {
+        assertEquals(
+            Collections.singleton("Thorium"),
+            OreNameNormalizer.normalizeAll(Arrays.asList("oreThorium", "oreThorium232", "oreTh232")));
+    }
+
+    @Test
     public void excludesDecorativeVolcanicOreTag() {
         assertNull(OreNameNormalizer.normalize("oreVolcanic"));
         assertNull(OreNameNormalizer.normalizeCanonicalName("Volcanic"));

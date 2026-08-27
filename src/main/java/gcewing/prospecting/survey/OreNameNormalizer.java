@@ -41,9 +41,15 @@ public final class OreNameNormalizer {
         return result;
     }
 
+    static boolean isLegacyHbmThoriumStorageName(String materialName) {
+        return "Thorium".equals(materialName) || "Thorium232".equals(materialName) || "Th232".equals(materialName);
+    }
+
     private static Map<String, String> createMaterialAliases() {
         Map<String, String> aliases = new HashMap<String, String>();
         aliases.put("NickelPure", "Nickel");
+        aliases.put("Th232", "Thorium");
+        aliases.put("Thorium232", "Thorium");
         return Collections.unmodifiableMap(aliases);
     }
 }

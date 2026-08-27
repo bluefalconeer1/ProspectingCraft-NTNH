@@ -39,7 +39,7 @@ public class SurveyViewResolverTest {
             snapshot.getColumn(12, 12)
                 .getOreAlpha());
         assertEquals(
-            18,
+            72,
             snapshot.getColumn(0, 0)
                 .getOreAlpha());
     }

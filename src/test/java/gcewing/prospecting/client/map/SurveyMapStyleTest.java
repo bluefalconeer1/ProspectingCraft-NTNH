@@ -8,9 +8,10 @@ public class SurveyMapStyleTest {
 
     @Test
     public void usesFixedColorsForKnownOres() {
-        assertEquals(0xD8C7B8, SurveyMapStyle.getOreColor("Iron"));
-        assertEquals(0xFFD54F, SurveyMapStyle.getOreColor("Gold"));
-        assertEquals(0xBFDFAF, SurveyMapStyle.getOreColor("Nickel"));
+        assertEquals(0x999999, SurveyMapStyle.getOreColor("Iron"));
+        assertEquals(0xC59334, SurveyMapStyle.getOreColor("Gold"));
+        assertEquals(0xA28F87, SurveyMapStyle.getOreColor("Nickel"));
+        assertEquals(0x5E98C5, SurveyMapStyle.getOreColor("HeeEndium"));
     }
 
     @Test

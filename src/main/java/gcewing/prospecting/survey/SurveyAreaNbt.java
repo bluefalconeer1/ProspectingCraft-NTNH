@@ -3,7 +3,9 @@ package gcewing.prospecting.survey;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import net.minecraft.nbt.NBTTagCompound;
@@ -11,7 +13,8 @@ import net.minecraft.nbt.NBTTagList;
 
 public final class SurveyAreaNbt {
 
-    private static final int FORMAT_VERSION = 3;
+    private static final int FORMAT_VERSION = 4;
+    private static final int LEGACY_TIER_FORMAT_VERSION = 3;
     private static final int LEGACY_EXACT_FORMAT_VERSION = 2;
     private static final int COMPOUND_TAG_ID = 10;
 
@@ -59,7 +62,8 @@ public final class SurveyAreaNbt {
 
     public static SurveyArea read(NBTTagCompound nbt) {
         int formatVersion = nbt.getInteger("formatVersion");
-        if (formatVersion != FORMAT_VERSION && formatVersion != LEGACY_EXACT_FORMAT_VERSION)
+        if (formatVersion != FORMAT_VERSION && formatVersion != LEGACY_TIER_FORMAT_VERSION
+            && formatVersion != LEGACY_EXACT_FORMAT_VERSION)
             throw new IllegalArgumentException("Unsupported survey data version: " + formatVersion);
 
         SurveyTier tier = formatVersion == LEGACY_EXACT_FORMAT_VERSION ? SurveyTier.DESH
@@ -86,7 +90,7 @@ public final class SurveyAreaNbt {
             NBTTagCompound columnNbt = columns.getCompoundTagAt(i);
             int columnIndex = columnNbt.getInteger("index");
             checkColumnIndex(columnIndex, columnCount);
-            readOres(area, columnIndex, columnNbt.getTagList("ores", COMPOUND_TAG_ID));
+            readOres(area, columnIndex, columnNbt.getTagList("ores", COMPOUND_TAG_ID), formatVersion < FORMAT_VERSION);
         }
         return area;
     }
@@ -106,13 +110,21 @@ public final class SurveyAreaNbt {
         return ores;
     }
 
-    private static void readOres(SurveyArea area, int columnIndex, NBTTagList ores) {
+    private static void readOres(SurveyArea area, int columnIndex, NBTTagList ores, boolean migrateLegacyAliases) {
         int x = getX(area, columnIndex);
         int z = getZ(area, columnIndex);
+        Map<String, Integer> migratedCounts = new HashMap<String, Integer>();
         for (int i = 0; i < ores.tagCount(); i++) {
             NBTTagCompound oreNbt = ores.getCompoundTagAt(i);
-            area.recordOre(x, z, oreNbt.getString("name"), oreNbt.getInteger("count"));
+            String oreName = oreNbt.getString("name");
+            int oreCount = oreNbt.getInteger("count");
+            if (migrateLegacyAliases && OreNameNormalizer.isLegacyHbmThoriumStorageName(oreName)) {
+                Integer oldCount = migratedCounts.get("Thorium");
+                migratedCounts.put("Thorium", oldCount == null ? oreCount : Math.max(oldCount, oreCount));
+            } else area.recordOre(x, z, oreName, oreCount);
         }
+        for (Map.Entry<String, Integer> entry : migratedCounts.entrySet())
+            area.recordOre(x, z, entry.getKey(), entry.getValue());
     }
 
     private static int getX(SurveyArea area, int columnIndex) {
