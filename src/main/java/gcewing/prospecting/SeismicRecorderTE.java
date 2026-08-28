@@ -210,9 +210,12 @@ public class SeismicRecorderTE extends BaseTileInventory implements ITickable {
         for (int i = blackInkSlot; i <= cyanInkSlot; i++) {
             ItemStack stack = getStackInSlot(i);
             if (isInkBottle(stack)) {
-                int damage = stack.getItemDamage() + 1;
-                stack.setItemDamage(damage);
-                if (damage >= stack.getMaxDamage()) setInventorySlotContents(i, new ItemStack(Items.glass_bottle, 1));
+                ItemStack damagedStack = stack.copy();
+                int damage = damagedStack.getItemDamage() + 1;
+                damagedStack.setItemDamage(damage);
+                if (damage >= damagedStack.getMaxDamage())
+                    setInventorySlotContents(i, new ItemStack(Items.glass_bottle, 1));
+                else setInventorySlotContents(i, damagedStack);
             }
         }
     }

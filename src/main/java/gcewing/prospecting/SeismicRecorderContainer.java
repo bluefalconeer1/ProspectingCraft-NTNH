@@ -53,14 +53,21 @@ public class SeismicRecorderContainer extends BaseContainer {
         ProspectingCraft mod = ProspectingCraft.mod;
         IInventory inv = te.getInventory();
         beginContainerSlots();
-        addSlotToContainer(new ItemSlot(inv, te.paperSlot, paperSlotX, inputSlotsY, Items.paper, 64));
+        addSlotToContainer(new SurveyorInputSlot(inv, te.paperSlot, paperSlotX, inputSlotsY, Items.paper, 64));
         for (int i = 0; i < 4; i++) {
             Item item = mod.itemInk[i];
-            Slot slot = new ItemSlot(inv, te.blackInkSlot + i, inkSlotsX + 18 * i, inputSlotsY, item, 1);
+            Slot slot = new SurveyorInputSlot(inv, te.blackInkSlot + i, inkSlotsX + 18 * i, inputSlotsY, item, 1);
             addSlotToContainer(slot);
         }
-        addSlotToContainer(new ItemSlot(inv, te.gunpowderSlot, gunpowderSlotX, gunpowderSlotY, Items.gunpowder, 64));
+        addSlotToContainer(
+            new SurveyorInputSlot(inv, te.gunpowderSlot, gunpowderSlotX, gunpowderSlotY, Items.gunpowder, 64));
         endContainerSlots();
+    }
+
+    @Override
+    public ItemStack transferStackInSlot(EntityPlayer player, int index) {
+        if (!inputInteractionAllowed(te != null && te.activated)) return null;
+        return super.transferStackInSlot(player, index);
     }
 
     // @Override
@@ -143,5 +150,26 @@ public class SeismicRecorderContainer extends BaseContainer {
             && surveyorBlock
             && ownerMatches
             && distanceSquared <= 64.0;
+    }
+
+    static boolean inputInteractionAllowed(boolean activated) {
+        return !activated;
+    }
+
+    private class SurveyorInputSlot extends ItemSlot {
+
+        SurveyorInputSlot(IInventory inv, int index, int x, int y, Item item, int stackLimit) {
+            super(inv, index, x, y, item, stackLimit);
+        }
+
+        @Override
+        public boolean isItemValid(ItemStack stack) {
+            return inputInteractionAllowed(te != null && te.activated) && super.isItemValid(stack);
+        }
+
+        @Override
+        public boolean canTakeStack(EntityPlayer player) {
+            return inputInteractionAllowed(te != null && te.activated);
+        }
     }
 }

@@ -23,4 +23,10 @@ public class SeismicRecorderContainerTest {
         assertFalse(SeismicRecorderContainer.isValidActivationContext(true, true, true, true, true, true, false, 0));
         assertFalse(SeismicRecorderContainer.isValidActivationContext(true, true, true, true, true, true, true, 64.01));
     }
+
+    @Test
+    public void locksInputInteractionOnlyWhileScanIsActive() {
+        assertTrue(SeismicRecorderContainer.inputInteractionAllowed(false));
+        assertFalse(SeismicRecorderContainer.inputInteractionAllowed(true));
+    }
 }

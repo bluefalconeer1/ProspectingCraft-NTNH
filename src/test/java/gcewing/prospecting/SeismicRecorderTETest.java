@@ -2,6 +2,7 @@ package gcewing.prospecting;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
@@ -97,6 +98,9 @@ public class SeismicRecorderTETest {
     @Test
     public void consumesOnePaperAndGunpowderAndDamagesEveryInk() {
         TestSeismicRecorderTE recorder = readyRecorder();
+        ItemStack[] originalInkStacks = new ItemStack[4];
+        for (int slot = SeismicRecorderTE.blackInkSlot; slot <= SeismicRecorderTE.cyanInkSlot; slot++)
+            originalInkStacks[slot - SeismicRecorderTE.blackInkSlot] = recorder.getStackInSlot(slot);
 
         recorder.consumeSurveySupplies();
 
@@ -111,6 +115,8 @@ public class SeismicRecorderTETest {
                 1,
                 recorder.getStackInSlot(slot)
                     .getItemDamage());
+            assertNotSame(originalInkStacks[slot - SeismicRecorderTE.blackInkSlot], recorder.getStackInSlot(slot));
+            assertEquals(0, originalInkStacks[slot - SeismicRecorderTE.blackInkSlot].getItemDamage());
         }
     }
 
