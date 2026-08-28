@@ -6,6 +6,7 @@ import com.gtnewhorizons.navigator.api.util.DrawUtils;
 import gcewing.prospecting.survey.SurveyChunkSnapshot;
 import gcewing.prospecting.survey.SurveyColumnSnapshot;
 
+/** Renders one 16-by-16 survey snapshot on the full map and deliberately skips minimap rendering. */
 public class OreSurveyRenderStep extends UniversalRenderStep<OreSurveyChunkLocation> {
 
     private static final int CHUNK_WIDTH = 16;

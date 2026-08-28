@@ -1,5 +1,6 @@
 package gcewing.prospecting.survey.network;
 
+/** Message identifiers and coordinate validation shared by the private survey client/server protocol. */
 public final class SurveyChunkNetworkProtocol {
 
     public static final String REQUEST_MESSAGE = "requestSurveyChunk";

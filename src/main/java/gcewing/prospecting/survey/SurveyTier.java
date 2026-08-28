@@ -2,6 +2,13 @@ package gcewing.prospecting.survey;
 
 import gcewing.prospecting.BaseConfiguration;
 
+/**
+ * Stable persisted Surveyor tier and its server-authoritative display-accuracy settings.
+ *
+ * <p>
+ * Storage IDs are part of the saved-data format and must never be reordered or reused. The scanner always stores
+ * exact columns; these values control the derived view produced by {@link SurveyViewResolver}.
+ */
 public enum SurveyTier {
 
     BASE(0, 24, 16, 1, 3, 8),

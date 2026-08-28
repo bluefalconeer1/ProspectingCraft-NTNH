@@ -2,9 +2,11 @@ package gcewing.prospecting;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Arrays;
 import java.util.UUID;
 
 import net.minecraft.block.Block;
@@ -16,6 +18,8 @@ import net.minecraft.nbt.NBTTagCompound;
 
 import org.junit.Test;
 
+import gcewing.prospecting.survey.PlayerSurveyData;
+import gcewing.prospecting.survey.SurveyArea;
 import gcewing.prospecting.survey.SurveyTier;
 
 public class SeismicRecorderTETest {
@@ -143,6 +147,89 @@ public class SeismicRecorderTETest {
         assertEquals(2, starts[0]);
     }
 
+    @Test
+    public void missingActiveSurveyRecordAbortsWithoutScanning() {
+        TestSeismicRecorderTE recorder = new TestSeismicRecorderTE();
+        recorder.ownerId = OWNER_ID;
+        recorder.playerSurveyData = new PlayerSurveyData(PlayerSurveyData.getDataName(OWNER_ID));
+        recorder.activeSurveyId = UUID.fromString("27910713-3ba1-4f00-8000-000000000002");
+        recorder.activated = true;
+        recorder.phase = 42;
+
+        recorder.updateActiveScan();
+
+        assertFalse(recorder.activated);
+        assertEquals(0, recorder.phase);
+        assertEquals(0, recorder.scannedRows);
+        assertNull(recorder.activeSurveyId);
+    }
+
+    @Test
+    public void restoredActiveSurveyContinuesAtItsSavedRow() {
+        TestSeismicRecorderTE recorder = new TestSeismicRecorderTE();
+        recorder.ownerId = OWNER_ID;
+        recorder.playerSurveyData = new PlayerSurveyData(PlayerSurveyData.getDataName(OWNER_ID));
+        SurveyArea area = new SurveyArea(SurveyTier.BASE, 0, 0, 0, 128, 128);
+        recorder.playerSurveyData.addSurveyArea(area);
+        recorder.activeSurveyId = area.getSurveyId();
+        recorder.activated = true;
+        recorder.phase = 42;
+
+        recorder.updateActiveScan();
+
+        assertTrue(recorder.activated);
+        assertEquals(43, recorder.phase);
+        assertEquals(1, recorder.scannedRows);
+        assertEquals(area.getSurveyId(), recorder.activeSurveyId);
+    }
+
+    @Test
+    public void cancellingActiveScanDiscardsOnlyItsPartialSurveyAndInvalidatesMap() {
+        TestSeismicRecorderTE recorder = new TestSeismicRecorderTE();
+        recorder.ownerId = OWNER_ID;
+        recorder.playerSurveyData = new PlayerSurveyData(PlayerSurveyData.getDataName(OWNER_ID));
+        SurveyArea completed = new SurveyArea(SurveyTier.BASE, 0, 0, 0, 128, 128);
+        completed.markSurveyed(0, 0);
+        recorder.playerSurveyData.addSurveyArea(completed);
+        SurveyArea partial = new SurveyArea(SurveyTier.BASE, 0, 0, 0, 128, 128);
+        partial.markSurveyed(0, 0);
+        recorder.playerSurveyData.addSurveyArea(partial);
+        recorder.activeSurveyId = partial.getSurveyId();
+        recorder.activated = true;
+        recorder.phase = 42;
+
+        recorder.cancelActiveScan();
+
+        assertFalse(recorder.activated);
+        assertEquals(0, recorder.phase);
+        assertNull(recorder.activeSurveyId);
+        assertEquals(1, recorder.playerSurveyData.getSurveyAreaCount());
+        assertSame(completed, recorder.playerSurveyData.getSurveyArea(completed.getSurveyId()));
+        assertNull(recorder.playerSurveyData.getSurveyArea(partial.getSurveyId()));
+        assertSame(partial, recorder.invalidatedSurvey);
+    }
+
+    @Test
+    public void findsValidGeophoneTrioAfterAnInvalidEarlyTrio() {
+        BlockPos recorder = new BlockPos(0, 0, 0);
+        BlockPos east = new BlockPos(8, 0, 0);
+        BlockPos tooCloseToEast = new BlockPos(9, 0, 0);
+        BlockPos south = new BlockPos(0, 0, 8);
+        BlockPos west = new BlockPos(-8, 0, 0);
+
+        assertFalse(SeismicRecorderTE.hasWellSeparatedTrio(recorder, Arrays.asList(east, tooCloseToEast, south)));
+        assertTrue(SeismicRecorderTE.hasWellSeparatedTrio(recorder, Arrays.asList(east, tooCloseToEast, south, west)));
+    }
+
+    @Test
+    public void excludesGeophonesOutsideExactHorizontalSearchArea() {
+        BlockPos recorder = new BlockPos(100, 64, -100);
+
+        assertTrue(SeismicRecorderTE.isInsideGeophoneSearchArea(recorder, new BlockPos(115, 200, -115)));
+        assertFalse(SeismicRecorderTE.isInsideGeophoneSearchArea(recorder, new BlockPos(116, 64, -100)));
+        assertFalse(SeismicRecorderTE.isInsideGeophoneSearchArea(recorder, new BlockPos(100, 64, -116)));
+    }
+
     private static TestSeismicRecorderTE readyRecorder() {
         TestSeismicRecorderTE recorder = new TestSeismicRecorderTE();
         recorder.ownerId = OWNER_ID;
@@ -162,6 +249,12 @@ public class SeismicRecorderTETest {
         private final Item[] inkItems = { new InkBottleItem(), new InkBottleItem(), new InkBottleItem(),
             new InkBottleItem() };
         private int[] startCounter;
+        private PlayerSurveyData playerSurveyData;
+        private int scannedRows;
+        private SurveyArea invalidatedSurvey;
+
+        @Override
+        public void markChanged() {}
 
         @Override
         protected Item getPaperItem() {
@@ -181,6 +274,21 @@ public class SeismicRecorderTETest {
         @Override
         protected void beginScan() {
             if (startCounter != null) startCounter[0]++;
+        }
+
+        @Override
+        protected PlayerSurveyData getPlayerSurveyData() {
+            return playerSurveyData;
+        }
+
+        @Override
+        protected void scanRow(int row, PlayerSurveyData data, SurveyArea area) {
+            scannedRows++;
+        }
+
+        @Override
+        protected void notifySurveyChanged(SurveyArea surveyArea) {
+            invalidatedSurvey = surveyArea;
         }
     }
 }

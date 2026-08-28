@@ -1,33 +1,50 @@
 package gcewing.prospecting.survey.network;
 
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Set;
 
 import gcewing.prospecting.survey.SurveyChunkSnapshot;
 
+/** Thread-safe, bounded LRU client cache that also suppresses duplicate in-flight chunk requests. */
 public class SurveyChunkSnapshotCache {
 
     private static final int MAX_CACHED_SNAPSHOTS = 8192;
-    private static final int MAX_PENDING_REQUESTS = 4096;
+    private static final int MAX_PENDING_REQUESTS = 64;
 
     private final Map<Key, SurveyChunkSnapshot> snapshots = new LinkedHashMap<Key, SurveyChunkSnapshot>(
         16,
         0.75f,
         true);
-    private final Set<Key> pending = new HashSet<Key>();
+    private final Map<Key, Long> pending = new HashMap<Key, Long>();
 
     public synchronized SurveyChunkSnapshot get(int dimensionId, int chunkX, int chunkZ) {
         return snapshots.get(new Key(dimensionId, chunkX, chunkZ));
     }
 
-    public synchronized boolean markPending(int dimensionId, int chunkX, int chunkZ) {
+    public synchronized boolean markPending(int dimensionId, int chunkX, int chunkZ, long requestTick) {
         Key key = new Key(dimensionId, chunkX, chunkZ);
         if (snapshots.containsKey(key)) return false;
+        if (pending.containsKey(key)) return false;
         if (pending.size() >= MAX_PENDING_REQUESTS) return false;
-        return pending.add(key);
+        pending.put(key, requestTick);
+        return true;
+    }
+
+    public synchronized int expirePending(long currentTick, long timeoutTicks) {
+        if (timeoutTicks <= 0) throw new IllegalArgumentException("Pending request timeout must be positive");
+        int expired = 0;
+        Iterator<Map.Entry<Key, Long>> iterator = pending.entrySet()
+            .iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<Key, Long> entry = iterator.next();
+            if (currentTick - entry.getValue() >= timeoutTicks) {
+                iterator.remove();
+                expired++;
+            }
+        }
+        return expired;
     }
 
     public synchronized void accept(SurveyChunkSnapshot snapshot) {

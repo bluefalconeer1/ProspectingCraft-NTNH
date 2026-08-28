@@ -3,6 +3,7 @@ package gcewing.prospecting.client.map;
 import gcewing.prospecting.survey.SurveyChunkSnapshot;
 import gcewing.prospecting.survey.SurveyColumnSnapshot;
 
+/** Converts full-map coordinates to an ore-bearing local column for hover text. */
 final class OreSurveyHoverResolver {
 
     private OreSurveyHoverResolver() {}

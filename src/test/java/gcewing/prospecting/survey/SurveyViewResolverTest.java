@@ -137,12 +137,51 @@ public class SurveyViewResolverTest {
         assertEquals(72, column.getOreAlpha());
     }
 
+    @Test
+    public void snapshotSessionComputesEachAlignedTierCellOnlyOnce() {
+        assertEquals(1, resolveChunkAndCountCells(SurveyTier.BASE));
+        assertEquals(4, resolveChunkAndCountCells(SurveyTier.STEEL));
+        assertEquals(256, resolveChunkAndCountCells(SurveyTier.DESH));
+    }
+
+    @Test
+    public void overlappingSurveyAreasDoNotShareCachedCellResults() {
+        PlayerSurveyData data = new PlayerSurveyData(PlayerSurveyData.getDataName(OWNER_ID));
+        SurveyArea older = new SurveyArea(SurveyTier.BASE, 0, 0, 0, 16, 16);
+        for (int z = 0; z < 16; z++) for (int x = 0; x < 16; x++) older.markSurveyed(x, z);
+        older.recordOre(0, 0, "Iron", 1);
+        data.addSurveyArea(older);
+        SurveyArea newer = new SurveyArea(SurveyTier.BASE, 0, 8, 0, 8, 16);
+        for (int z = 0; z < 16; z++) for (int x = 8; x < 16; x++) newer.markSurveyed(x, z);
+        newer.recordOre(8, 0, "Gold", 1);
+        data.addSurveyArea(newer);
+
+        SurveyViewResolver.ResolutionSession resolver = SurveyViewResolver.begin(data, 0, SurveyOreSelection.showAll());
+
+        assertEquals(
+            "Iron",
+            resolver.resolve(0, 0)
+                .getDominantOreName());
+        assertEquals(
+            "Gold",
+            resolver.resolve(8, 0)
+                .getDominantOreName());
+        assertEquals(2, resolver.getComputedCellCount());
+    }
+
     private static SurveyColumnSnapshot resolveBaseMass(int amount) {
         PlayerSurveyData data = dataWithArea(SurveyTier.BASE);
         data.getSurveyAreaAt(0, 0, 0)
             .recordOre(0, 0, "Iron", amount);
         return SurveyChunkSnapshot.from(data, 0, 0, 0)
             .getColumn(12, 12);
+    }
+
+    private static int resolveChunkAndCountCells(SurveyTier tier) {
+        PlayerSurveyData data = dataWithArea(tier);
+        SurveyViewResolver.ResolutionSession resolver = SurveyViewResolver.begin(data, 0, SurveyOreSelection.showAll());
+        for (int z = 0; z < 16; z++) for (int x = 0; x < 16; x++) resolver.resolve(x, z);
+        return resolver.getComputedCellCount();
     }
 
     private static PlayerSurveyData dataWithArea(SurveyTier tier) {

@@ -10,5 +10,4 @@ permissions:
 
 jobs:
   release-tags:
-    uses: GTNewHorizons/GTNH-Actions-Workflows/.github/workflows/release-tags.yml@master
-    secrets: inherit
+    uses: GTNewHorizons/GTNH-Actions-Workflows/.github/workflows/release-tags.yml@8d2e9d2fcfd6ea1c5b8f7c7e15359ad031444c7d # master

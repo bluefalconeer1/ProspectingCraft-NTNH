@@ -2,6 +2,8 @@ package gcewing.prospecting;
 
 import net.minecraft.item.ItemStack;
 
+import com.github.bluefalconeer1.prospectingcraft.Tags;
+
 import codechicken.nei.api.API;
 import codechicken.nei.api.IConfigureNEI;
 
@@ -30,6 +32,6 @@ public class NEIProspectingCraftConfig implements IConfigureNEI {
 
     @Override
     public String getVersion() {
-        return Info.versionNumber;
+        return Tags.VERSION;
     }
 }

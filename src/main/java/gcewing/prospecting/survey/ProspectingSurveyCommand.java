@@ -14,10 +14,8 @@ import net.minecraft.util.ChatComponentText;
 
 import gcewing.prospecting.survey.network.SurveyChunkServerHandler;
 
-/** Player ore-display controls and temporary operator survey diagnostics. */
+/** Player ore-display controls. */
 public class ProspectingSurveyCommand extends CommandBase {
-
-    private static final List<String> COMMAND_ALIASES = Collections.singletonList("ps");
 
     @Override
     public String getCommandName() {
@@ -25,13 +23,8 @@ public class ProspectingSurveyCommand extends CommandBase {
     }
 
     @Override
-    public List<String> getCommandAliases() {
-        return COMMAND_ALIASES;
-    }
-
-    @Override
     public String getCommandUsage(ICommandSender sender) {
-        return "/pcsurvey ores <all|none|only <ore>...> | /pcsurvey column <x> <z> | /ps check <x> <z>";
+        return "/pcsurvey ores <all|none|only <ore>...>";
     }
 
     @Override
@@ -45,15 +38,7 @@ public class ProspectingSurveyCommand extends CommandBase {
             processOreSelection(sender, arguments);
             return;
         }
-        if (arguments.length == 3 && isColumnDiagnostic(arguments[0])) {
-            processColumn(sender, arguments);
-            return;
-        }
         throw new WrongUsageException(getCommandUsage(sender));
-    }
-
-    static boolean isColumnDiagnostic(String subcommand) {
-        return "column".equalsIgnoreCase(subcommand) || "check".equalsIgnoreCase(subcommand);
     }
 
     private void processOreSelection(ICommandSender sender, String[] arguments) {
@@ -120,31 +105,4 @@ public class ProspectingSurveyCommand extends CommandBase {
         return result.toString();
     }
 
-    private void processColumn(ICommandSender sender, String[] arguments) {
-        if (!sender.canCommandSenderUseCommand(2, getCommandName()))
-            throw new CommandException("commands.generic.permission");
-
-        EntityPlayerMP player = getCommandSenderAsPlayer(sender);
-        int x = parseInt(sender, arguments[1]);
-        int z = parseInt(sender, arguments[2]);
-        int dimensionId = player.worldObj.provider.dimensionId;
-        PlayerSurveyData data = PlayerSurveyData.get(player.worldObj, player.getUniqueID());
-        SurveyColumn column = data.getColumn(dimensionId, x, z);
-
-        sender
-            .addChatMessage(new ChatComponentText("Survey column: dimension " + dimensionId + ", X=" + x + ", Z=" + z));
-        if (column == null) {
-            sender.addChatMessage(new ChatComponentText("Surveyed: no"));
-            return;
-        }
-
-        sender.addChatMessage(new ChatComponentText("Surveyed: yes"));
-        List<String> oreNames = column.getTopOreNames(Integer.MAX_VALUE);
-        if (oreNames.isEmpty()) {
-            sender.addChatMessage(new ChatComponentText("Ores: none"));
-            return;
-        }
-        for (String oreName : oreNames)
-            sender.addChatMessage(new ChatComponentText(oreName + ": " + column.getOreCount(oreName)));
-    }
 }

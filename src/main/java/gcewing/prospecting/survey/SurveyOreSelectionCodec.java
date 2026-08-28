@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+/** Versioned, size-bounded wire codec for ore-selection requests and server-approved selection state. */
 public final class SurveyOreSelectionCodec {
 
     private static final int FORMAT_VERSION = 1;

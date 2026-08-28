@@ -1,5 +1,6 @@
 package gcewing.prospecting.survey;
 
+/** Converts exact or banded ore density into the bounded server-provided map alpha. */
 public final class SurveyDisplayStrength {
 
     public static final int MINIMUM_ALPHA = 72;

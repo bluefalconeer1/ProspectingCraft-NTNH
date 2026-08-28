@@ -6,6 +6,7 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
+/** Central policy for accepting, merging, and excluding ore-dictionary material names. */
 public final class OreNameNormalizer {
 
     private static final String ORE_PREFIX = "ore";

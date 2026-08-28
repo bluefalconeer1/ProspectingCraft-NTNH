@@ -26,11 +26,13 @@ import gcewing.prospecting.survey.SurveyMapStyleConfig;
 import gcewing.prospecting.survey.SurveyTier;
 import gcewing.prospecting.survey.network.SurveyChunkServerHandler;
 
+// Do not explicitly pass an empty acceptableRemoteVersions value here. Forge 1.7.10 interprets a present empty value
+// as an empty Maven range and rejects even an identical integrated-server client. Omitting it uses exact-version
+// matching.
 @Mod(
     modid = Info.modID,
     name = Info.modName,
     version = Tags.VERSION,
-    acceptableRemoteVersions = Info.versionBounds,
     acceptedMinecraftVersions = Info.acceptedMinecraftVersions,
     dependencies = "required-after:navigator@[1.1.6,);after:hbm")
 
@@ -91,7 +93,10 @@ public class ProspectingCraft extends BaseMod<ProspectingCraftClient> {
 
     @SubscribeEvent
     public void onServerTick(TickEvent.ServerTickEvent event) {
-        if (event.phase == TickEvent.Phase.END) SurveyChunkServerHandler.INSTANCE.processRequests();
+        if (event.phase == TickEvent.Phase.END) {
+            SurveyorActivationServerHandler.INSTANCE.processRequests();
+            SurveyChunkServerHandler.INSTANCE.processRequests();
+        }
     }
 
     @Override

@@ -7,6 +7,7 @@ import com.gtnewhorizons.navigator.api.model.layers.LayerManager;
 import com.gtnewhorizons.navigator.api.model.layers.LayerRenderer;
 import com.gtnewhorizons.navigator.api.model.locations.ILocationProvider;
 
+/** Navigator layer manager that supplies private survey chunk locations only to Xaero's full world map. */
 public class OreSurveyLayerManager extends LayerManager {
 
     public static final OreSurveyLayerManager INSTANCE = new OreSurveyLayerManager();

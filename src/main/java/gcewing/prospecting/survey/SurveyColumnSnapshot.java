@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+/** Render-safe state for one X/Z map column, including only tier-limited opacity and hover names. */
 public class SurveyColumnSnapshot {
 
     public enum State {

@@ -8,6 +8,7 @@ import java.util.TreeSet;
 import gcewing.prospecting.survey.SurveyOreSelection;
 import gcewing.prospecting.survey.SurveyOreSelectionState;
 
+/** Mutable screen model that converts all/none/individual UI choices into an immutable selection request. */
 final class OreSurveySelectionModel {
 
     private final List<String> oreNames;

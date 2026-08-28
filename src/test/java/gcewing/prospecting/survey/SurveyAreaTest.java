@@ -3,6 +3,7 @@ package gcewing.prospecting.survey;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
@@ -54,5 +55,17 @@ public class SurveyAreaTest {
         assertTrue(
             area.getColumn(0, 0)
                 .isEmpty());
+    }
+
+    @Test
+    public void aggregationLookupDoesNotAllocateSurveyedEmptyColumns() {
+        SurveyArea area = new SurveyArea(0, 0, 0, 1, 1);
+        area.markSurveyed(0, 0);
+
+        assertNull(area.getOreBearingColumn(0, 0));
+
+        area.recordOre(0, 0, "Iron", 1);
+
+        assertSame(area.getColumn(0, 0), area.getOreBearingColumn(0, 0));
     }
 }

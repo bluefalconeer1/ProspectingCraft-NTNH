@@ -29,18 +29,26 @@ import gcewing.prospecting.survey.SurveyOreSelection;
 import gcewing.prospecting.survey.SurveyOreSelectionCodec;
 import gcewing.prospecting.survey.SurveyOreSelectionState;
 
+/**
+ * Validates and queues client requests, then serves owner-filtered snapshots on the server tick.
+ *
+ * <p>
+ * Network callbacks enqueue bounded work rather than touching world saved data from the network thread.
+ */
 public final class SurveyChunkServerHandler {
 
     public static final SurveyChunkServerHandler INSTANCE = new SurveyChunkServerHandler();
 
     private static final Logger LOG = LogManager.getLogger("ProspectingCraft survey network");
     private static final int MAX_PENDING_REQUESTS = 4096;
+    private static final int MAX_PENDING_REQUESTS_PER_PLAYER = 64;
     private static final int MAX_REQUESTS_PER_TICK = 16;
     private static final int MAX_PENDING_SELECTION_REQUESTS = 128;
     private static final int MAX_SELECTION_REQUESTS_PER_TICK = 16;
 
-    private final ConcurrentLinkedQueue<Request> requests = new ConcurrentLinkedQueue<Request>();
-    private final AtomicInteger pendingRequestCount = new AtomicInteger();
+    private final FairSurveyChunkRequestQueue<Request> requests = new FairSurveyChunkRequestQueue<Request>(
+        MAX_PENDING_REQUESTS,
+        MAX_PENDING_REQUESTS_PER_PLAYER);
     private final ConcurrentLinkedQueue<SelectionRequest> selectionRequests = new ConcurrentLinkedQueue<SelectionRequest>();
     private final AtomicInteger pendingSelectionRequestCount = new AtomicInteger();
 
@@ -56,12 +64,9 @@ public final class SurveyChunkServerHandler {
         if (!SurveyChunkNetworkProtocol.isValidChunkCoordinate(chunkX)
             || !SurveyChunkNetworkProtocol.isValidChunkCoordinate(chunkZ)) return;
 
-        int pending = pendingRequestCount.incrementAndGet();
-        if (pending > MAX_PENDING_REQUESTS) {
-            pendingRequestCount.decrementAndGet();
-            return;
-        }
-        requests.add(new Request((EntityPlayerMP) requestingPlayer, dimensionId, chunkX, chunkZ));
+        EntityPlayerMP player = (EntityPlayerMP) requestingPlayer;
+        requests
+            .offer(player.getUniqueID(), dimensionId, chunkX, chunkZ, new Request(player, dimensionId, chunkX, chunkZ));
     }
 
     public void processRequests() {
@@ -69,7 +74,6 @@ public final class SurveyChunkServerHandler {
         for (int i = 0; i < MAX_REQUESTS_PER_TICK; i++) {
             Request request = requests.poll();
             if (request == null) return;
-            pendingRequestCount.decrementAndGet();
             sendSnapshot(request);
         }
     }
@@ -126,7 +130,7 @@ public final class SurveyChunkServerHandler {
         sendSelectionState(player);
     }
 
-    public void notifySurveyCompleted(UUID ownerId, SurveyArea surveyArea) {
+    public void notifySurveyChanged(UUID ownerId, SurveyArea surveyArea) {
         if (ownerId == null || surveyArea == null) return;
         EntityPlayerMP owner = findConnectedPlayer(ownerId);
         if (owner == null) return;
@@ -145,7 +149,7 @@ public final class SurveyChunkServerHandler {
             output.writeInt(maxChunkZ);
             output.close();
         } catch (RuntimeException exception) {
-            LOG.error("Could not invalidate completed survey chunks", exception);
+            LOG.error("Could not invalidate changed survey chunks", exception);
         }
     }
 

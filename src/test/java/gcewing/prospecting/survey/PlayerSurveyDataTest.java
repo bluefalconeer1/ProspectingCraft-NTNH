@@ -4,11 +4,13 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.Arrays;
 import java.util.UUID;
 
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
 
 import org.junit.Test;
 
@@ -216,6 +218,83 @@ public class PlayerSurveyDataTest {
         data.addSurveyArea(new SurveyArea(surveyId, 0, 0, 0, 1, 1));
 
         data.addSurveyArea(new SurveyArea(surveyId, 0, 10, 10, 1, 1));
+    }
+
+    @Test
+    public void removesOnlyTheRequestedSurveyArea() {
+        PlayerSurveyData data = newData(OWNER_ID);
+        SurveyArea retained = new SurveyArea(0, 0, 0, 1, 1);
+        SurveyArea removed = new SurveyArea(0, 10, 10, 1, 1);
+        data.addSurveyArea(retained);
+        data.addSurveyArea(removed);
+
+        assertEquals(removed, data.removeSurveyArea(removed.getSurveyId()));
+        assertEquals(1, data.getSurveyAreaCount());
+        assertEquals(retained, data.getSurveyArea(retained.getSurveyId()));
+        assertNull(data.getSurveyArea(removed.getSurveyId()));
+        assertNull(data.removeSurveyArea(removed.getSurveyId()));
+    }
+
+    @Test
+    public void skipsMalformedAreaAndContinuesLoadingLaterAreas() {
+        SurveyArea first = new SurveyArea(0, 0, 0, 1, 1);
+        first.recordOre(0, 0, "Iron", 2);
+        SurveyArea last = new SurveyArea(0, 20, 20, 1, 1);
+        last.recordOre(20, 20, "Gold", 3);
+
+        PlayerSurveyData encoded = newData(OWNER_ID);
+        encoded.setOreSelection(SurveyOreSelection.custom(Arrays.asList("Iron")));
+        NBTTagCompound nbt = new NBTTagCompound();
+        encoded.writeToNBT(nbt);
+        NBTTagList areas = new NBTTagList();
+        areas.appendTag(SurveyAreaNbt.write(first));
+        NBTTagCompound malformed = SurveyAreaNbt.write(new SurveyArea(0, 10, 10, 1, 1));
+        malformed.setInteger("formatVersion", 99);
+        areas.appendTag(malformed);
+        areas.appendTag(SurveyAreaNbt.write(last));
+        nbt.setTag("areas", areas);
+
+        PlayerSurveyData restored = newData(OWNER_ID);
+        restored.readFromNBT(nbt);
+
+        assertEquals(2, restored.getSurveyAreaCount());
+        assertEquals(
+            first.getSurveyId(),
+            restored.getSurveyArea(first.getSurveyId())
+                .getSurveyId());
+        assertEquals(
+            last.getSurveyId(),
+            restored.getSurveyArea(last.getSurveyId())
+                .getSurveyId());
+        assertTrue(
+            restored.getOreSelection()
+                .includes("Iron"));
+    }
+
+    @Test
+    public void invalidTopLevelDataLeavesExistingStateUntouched() {
+        PlayerSurveyData data = newData(OWNER_ID);
+        SurveyArea existing = new SurveyArea(0, 0, 0, 1, 1);
+        existing.recordOre(0, 0, "Lignite", 4);
+        data.addSurveyArea(existing);
+        data.setOreSelection(SurveyOreSelection.custom(Arrays.asList("Lignite")));
+
+        NBTTagCompound invalid = new NBTTagCompound();
+        data.writeToNBT(invalid);
+        invalid.setInteger("formatVersion", 99);
+        try {
+            data.readFromNBT(invalid);
+            fail("Expected invalid player survey format to be rejected");
+        } catch (IllegalArgumentException expected) {}
+
+        assertEquals(1, data.getSurveyAreaCount());
+        assertEquals(
+            existing.getSurveyId(),
+            data.getSurveyArea(existing.getSurveyId())
+                .getSurveyId());
+        assertTrue(
+            data.getOreSelection()
+                .includes("Lignite"));
     }
 
     private static PlayerSurveyData newData(UUID ownerId) {

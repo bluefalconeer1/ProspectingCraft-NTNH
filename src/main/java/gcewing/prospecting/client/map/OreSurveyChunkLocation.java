@@ -4,6 +4,7 @@ import com.gtnewhorizons.navigator.api.model.locations.ILocationProvider;
 
 import gcewing.prospecting.survey.SurveyChunkSnapshot;
 
+/** Navigator location for one dimension/chunk and its asynchronously populated survey snapshot. */
 public class OreSurveyChunkLocation implements ILocationProvider {
 
     private final int dimensionId;

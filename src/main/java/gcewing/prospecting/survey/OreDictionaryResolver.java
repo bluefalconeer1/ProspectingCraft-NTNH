@@ -11,6 +11,7 @@ import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.oredict.OreDictionary;
 
+/** Resolves item stacks and registered block ores to the canonical material names used in survey storage. */
 public final class OreDictionaryResolver {
 
     private OreDictionaryResolver() {}

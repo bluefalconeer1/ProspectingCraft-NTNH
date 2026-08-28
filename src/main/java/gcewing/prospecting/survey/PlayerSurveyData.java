@@ -14,8 +14,19 @@ import net.minecraft.world.World;
 import net.minecraft.world.WorldSavedData;
 import net.minecraft.world.storage.MapStorage;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+/**
+ * Server-only persistent survey database for one player UUID.
+ *
+ * <p>
+ * One database contains dimension-tagged survey areas and the owner's display selection. It is never exposed
+ * directly to the client; the network layer derives tier-limited chunk snapshots from it.
+ */
 public class PlayerSurveyData extends WorldSavedData {
 
+    private static final Logger LOG = LogManager.getLogger("ProspectingCraft survey data");
     private static final String DATA_NAME_PREFIX = "prospectingcraft_surveys_";
     private static final int FORMAT_VERSION = 1;
     private static final int STRING_TAG_ID = 8;
@@ -23,6 +34,7 @@ public class PlayerSurveyData extends WorldSavedData {
 
     private final UUID ownerId;
     private final List<SurveyArea> surveyAreas = new ArrayList<SurveyArea>();
+    private SurveyAreaIndex surveyAreaIndex = new SurveyAreaIndex();
     private SurveyOreSelection oreSelection = SurveyOreSelection.showAll();
 
     public PlayerSurveyData(String dataName) {
@@ -97,17 +109,21 @@ public class PlayerSurveyData extends WorldSavedData {
     }
 
     public void addSurveyArea(SurveyArea surveyArea) {
-        if (surveyArea == null) throw new IllegalArgumentException("Survey area must not be null");
-        if (getSurveyArea(surveyArea.getSurveyId()) != null)
-            throw new IllegalArgumentException("Survey ID is already present: " + surveyArea.getSurveyId());
+        surveyAreaIndex.add(surveyArea);
         surveyAreas.add(surveyArea);
         markDirty();
     }
 
     public SurveyArea getSurveyArea(UUID surveyId) {
-        if (surveyId == null) return null;
-        for (SurveyArea surveyArea : surveyAreas) if (surveyId.equals(surveyArea.getSurveyId())) return surveyArea;
-        return null;
+        return surveyAreaIndex.get(surveyId);
+    }
+
+    public SurveyArea removeSurveyArea(UUID surveyId) {
+        SurveyArea removedArea = surveyAreaIndex.remove(surveyId);
+        if (removedArea == null) return null;
+        surveyAreas.remove(removedArea);
+        markDirty();
+        return removedArea;
     }
 
     public boolean isSurveyed(int dimensionId, int x, int z) {
@@ -120,17 +136,7 @@ public class PlayerSurveyData extends WorldSavedData {
     }
 
     public SurveyArea getSurveyAreaAt(int dimensionId, int x, int z) {
-        SurveyArea bestArea = null;
-        for (int i = surveyAreas.size() - 1; i >= 0; i--) {
-            SurveyArea area = surveyAreas.get(i);
-            if (area.getDimensionId() == dimensionId && area.isSurveyed(x, z)
-                && (bestArea == null || area.getTier()
-                    .getStorageId()
-                    > bestArea.getTier()
-                        .getStorageId()))
-                bestArea = area;
-        }
-        return bestArea;
+        return surveyAreaIndex.getAt(dimensionId, x, z);
     }
 
     @Override
@@ -143,10 +149,22 @@ public class PlayerSurveyData extends WorldSavedData {
         if (!ownerId.equals(savedOwnerId))
             throw new IllegalArgumentException("Survey data owner does not match its name");
 
-        oreSelection = readOreSelection(nbt);
-        surveyAreas.clear();
+        SurveyOreSelection loadedSelection = readOreSelection(nbt);
+        List<SurveyArea> loadedAreas = new ArrayList<SurveyArea>();
+        SurveyAreaIndex loadedIndex = new SurveyAreaIndex();
         NBTTagList areas = nbt.getTagList("areas", COMPOUND_TAG_ID);
-        for (int i = 0; i < areas.tagCount(); i++) surveyAreas.add(SurveyAreaNbt.read(areas.getCompoundTagAt(i)));
+        for (int i = 0; i < areas.tagCount(); i++) try {
+            SurveyArea area = SurveyAreaNbt.read(areas.getCompoundTagAt(i));
+            loadedIndex.add(area);
+            loadedAreas.add(area);
+        } catch (RuntimeException exception) {
+            LOG.warn("Skipped malformed survey area at index " + i + " in " + mapName, exception);
+        }
+
+        oreSelection = loadedSelection;
+        surveyAreas.clear();
+        surveyAreas.addAll(loadedAreas);
+        surveyAreaIndex = loadedIndex;
     }
 
     @Override

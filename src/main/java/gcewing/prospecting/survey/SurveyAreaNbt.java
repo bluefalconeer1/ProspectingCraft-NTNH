@@ -11,6 +11,13 @@ import java.util.UUID;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 
+/**
+ * Versioned NBT codec for {@link SurveyArea}.
+ *
+ * <p>
+ * Formats 2 and 3 remain readable for save compatibility. Format 4 also collapses legacy Thorium aliases without
+ * summing duplicate aliases that may describe the same physical block.
+ */
 public final class SurveyAreaNbt {
 
     private static final int FORMAT_VERSION = 4;

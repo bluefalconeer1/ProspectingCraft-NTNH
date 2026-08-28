@@ -13,6 +13,7 @@ import org.apache.logging.log4j.Logger;
 
 import gcewing.prospecting.BaseConfiguration;
 
+/** Loads and validates client-side ore colors, unsurveyed styling, and global opacity from the Forge config. */
 public final class SurveyMapStyleConfig {
 
     private static final Logger LOG = LogManager.getLogger("ProspectingCraft survey map style");

@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.TreeSet;
 
+/** Builds the server-approved picker catalog from registered block ores plus names retained in saved surveys. */
 public final class SurveyOreCatalog {
 
     private SurveyOreCatalog() {}

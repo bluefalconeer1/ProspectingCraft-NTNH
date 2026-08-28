@@ -2,6 +2,12 @@ package gcewing.prospecting.survey;
 
 import java.util.Arrays;
 
+/**
+ * Owner-filtered map view for one 16-by-16 Minecraft chunk.
+ *
+ * <p>
+ * Snapshots contain render-ready states rather than exact stored ore counts and are the unit transferred to clients.
+ */
 public class SurveyChunkSnapshot {
 
     public static final int CHUNK_WIDTH = 16;
@@ -28,11 +34,11 @@ public class SurveyChunkSnapshot {
         if (data == null) throw new IllegalArgumentException("Player survey data must not be null");
         if (selection == null) throw new IllegalArgumentException("Survey ore selection must not be null");
         SurveyChunkSnapshot snapshot = new SurveyChunkSnapshot(dimensionId, chunkX, chunkZ);
+        SurveyViewResolver.ResolutionSession resolver = SurveyViewResolver.begin(data, dimensionId, selection);
         int minBlockX = chunkX << 4;
         int minBlockZ = chunkZ << 4;
         for (int localZ = 0; localZ < CHUNK_WIDTH; localZ++) for (int localX = 0; localX < CHUNK_WIDTH; localX++) {
-            snapshot.columns[getIndex(localX, localZ)] = SurveyViewResolver
-                .resolve(data, dimensionId, minBlockX + localX, minBlockZ + localZ, selection);
+            snapshot.columns[getIndex(localX, localZ)] = resolver.resolve(minBlockX + localX, minBlockZ + localZ);
         }
         return snapshot;
     }

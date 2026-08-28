@@ -15,6 +15,7 @@ import com.gtnewhorizons.navigator.api.model.layers.LayerManager;
 
 import gcewing.prospecting.survey.SurveyOreSelectionState;
 
+/** Non-pausing ore picker that loads server-approved choices and submits changes only when Apply is pressed. */
 public final class OreSurveySelectionScreen extends GuiScreen {
 
     private static final int ALL_BUTTON = 0;

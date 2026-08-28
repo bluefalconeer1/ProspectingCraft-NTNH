@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
+/** Immutable server response containing the active selection and sorted selectable ore catalog. */
 public final class SurveyOreSelectionState {
 
     private final SurveyOreSelection selection;

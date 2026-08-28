@@ -5,6 +5,7 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.TreeSet;
 
+/** Immutable player preference for displaying all discovered ores or a normalized custom subset. */
 public final class SurveyOreSelection {
 
     public enum Mode {

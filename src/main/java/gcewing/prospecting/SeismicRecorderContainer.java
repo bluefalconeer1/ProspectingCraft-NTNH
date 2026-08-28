@@ -83,6 +83,65 @@ public class SeismicRecorderContainer extends BaseContainer {
 
     @ServerMessageHandler("activateSurveyor")
     public void onActivateSurveyor(EntityPlayer player, ChannelInput data) {
-        te.tryBeginScan();
+        SurveyorActivationServerHandler.INSTANCE.enqueue(player, this);
+    }
+
+    @Override
+    public boolean canInteractWith(EntityPlayer player) {
+        return hasUsableSurveyor(player);
+    }
+
+    boolean tryActivateFor(EntityPlayer player) {
+        if (!isValidActivationContext(
+            player != null && !player.isDead,
+            player != null && player.openContainer == this,
+            te != null && te.getWorldObj() != null && !te.getWorldObj().isRemote,
+            player != null && te != null && player.worldObj == te.getWorldObj(),
+            hasCurrentTileEntity(),
+            hasSurveyorBlock(),
+            player != null && te != null && SeismicRecorderBlock.canPlayerAccess(te.getOwnerId(), player.getUniqueID()),
+            getDistanceSquared(player))) return false;
+        return te.tryBeginScan();
+    }
+
+    private boolean hasUsableSurveyor(EntityPlayer player) {
+        return isValidActivationContext(
+            player != null && !player.isDead,
+            true,
+            te != null && te.getWorldObj() != null,
+            player != null && te != null && player.worldObj == te.getWorldObj(),
+            hasCurrentTileEntity(),
+            hasSurveyorBlock(),
+            player != null && te != null && SeismicRecorderBlock.canPlayerAccess(te.getOwnerId(), player.getUniqueID()),
+            getDistanceSquared(player));
+    }
+
+    private boolean hasCurrentTileEntity() {
+        if (te == null || te.getWorldObj() == null || te.isInvalid()) return false;
+        return te.getWorldObj()
+            .getTileEntity(te.getX(), te.getY(), te.getZ()) == te;
+    }
+
+    private boolean hasSurveyorBlock() {
+        return te != null && te.getWorldObj() != null
+            && te.getWorldObj()
+                .getBlock(te.getX(), te.getY(), te.getZ()) instanceof SeismicRecorderBlock;
+    }
+
+    private double getDistanceSquared(EntityPlayer player) {
+        if (player == null || te == null) return Double.POSITIVE_INFINITY;
+        return player.getDistanceSq(te.getX() + 0.5, te.getY() + 0.5, te.getZ() + 0.5);
+    }
+
+    static boolean isValidActivationContext(boolean activePlayer, boolean currentContainer, boolean validWorld,
+        boolean sameWorld, boolean currentTileEntity, boolean surveyorBlock, boolean ownerMatches,
+        double distanceSquared) {
+        return activePlayer && currentContainer
+            && validWorld
+            && sameWorld
+            && currentTileEntity
+            && surveyorBlock
+            && ownerMatches
+            && distanceSquared <= 64.0;
     }
 }

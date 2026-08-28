@@ -21,25 +21,35 @@ import gcewing.prospecting.survey.SurveyOreSelectionState;
 import gcewing.prospecting.survey.network.SurveyChunkNetworkProtocol;
 import gcewing.prospecting.survey.network.SurveyChunkSnapshotCache;
 
+/**
+ * Bridges Navigator's chunk demand to the survey network and client cache.
+ *
+ * <p>
+ * Network callbacks enqueue decoded events; {@link #processQueues()} applies them on the client tick and refreshes
+ * the full-map layer.
+ */
 public final class SurveyChunkClientHandler {
 
     public static final SurveyChunkClientHandler INSTANCE = new SurveyChunkClientHandler();
 
     private static final Logger LOG = LogManager.getLogger("ProspectingCraft survey network");
     private static final int MAX_REQUESTS_PER_TICK = 16;
+    private static final int REQUEST_RETRY_TIMEOUT_TICKS = 30 * 20;
 
     private final SurveyChunkSnapshotCache cache = new SurveyChunkSnapshotCache();
     private final ConcurrentLinkedQueue<Request> requests = new ConcurrentLinkedQueue<Request>();
     private final ConcurrentLinkedQueue<ReceivedEvent> receivedEvents = new ConcurrentLinkedQueue<ReceivedEvent>();
     private final ConcurrentLinkedQueue<SurveyOreSelectionState> receivedSelectionStates = new ConcurrentLinkedQueue<SurveyOreSelectionState>();
     private SurveyOreSelectionState selectionState;
+    private long clientTick;
 
     private SurveyChunkClientHandler() {}
 
     public SurveyChunkSnapshot getOrRequest(int dimensionId, int chunkX, int chunkZ) {
         SurveyChunkSnapshot snapshot = cache.get(dimensionId, chunkX, chunkZ);
         if (snapshot != null) return snapshot;
-        if (cache.markPending(dimensionId, chunkX, chunkZ)) requests.add(new Request(dimensionId, chunkX, chunkZ));
+        if (cache.markPending(dimensionId, chunkX, chunkZ, clientTick))
+            requests.add(new Request(dimensionId, chunkX, chunkZ));
         return null;
     }
 
@@ -104,6 +114,7 @@ public final class SurveyChunkClientHandler {
     }
 
     public void processQueues() {
+        clientTick++;
         SurveyOreSelectionState receivedState;
         while ((receivedState = receivedSelectionStates.poll()) != null) selectionState = receivedState;
 
@@ -120,8 +131,9 @@ public final class SurveyChunkClientHandler {
                 .invalidate(event.dimensionId, event.minChunkX, event.minChunkZ, event.maxChunkX, event.maxChunkZ);
             surveyDataChanged = true;
         }
+        boolean requestExpired = cache.expirePending(clientTick, REQUEST_RETRY_TIMEOUT_TICKS) > 0;
         if (fullCacheReset) OreSurveyLayerManager.INSTANCE.clearFullCache();
-        else if (surveyDataChanged) OreSurveyLayerManager.INSTANCE.forceRefresh();
+        else if (surveyDataChanged || requestExpired) OreSurveyLayerManager.INSTANCE.forceRefresh();
 
         Minecraft minecraft = Minecraft.getMinecraft();
         if (minecraft.thePlayer == null || minecraft.theWorld == null) return;
@@ -138,6 +150,7 @@ public final class SurveyChunkClientHandler {
         receivedEvents.clear();
         receivedSelectionStates.clear();
         selectionState = null;
+        clientTick = 0;
         OreSurveyLayerManager.INSTANCE.clearFullCache();
     }
 

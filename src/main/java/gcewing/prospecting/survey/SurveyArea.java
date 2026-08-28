@@ -6,6 +6,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+/**
+ * Exact server-side result of one Surveyor run.
+ *
+ * <p>
+ * The surveyed bitset distinguishes an unscanned column from a scanned column containing no ore. Ore-bearing
+ * columns store canonical names and exact counts so display rules can change without rescanning.
+ */
 public class SurveyArea {
 
     private final UUID surveyId;
@@ -101,6 +108,11 @@ public class SurveyArea {
         if (index < 0 || !surveyedColumns.get(index)) return null;
         SurveyColumn column = oreColumns.get(index);
         return column == null ? new SurveyColumn() : column;
+    }
+
+    SurveyColumn getOreBearingColumn(int x, int z) {
+        int index = getIndex(x, z);
+        return index < 0 ? null : oreColumns.get(index);
     }
 
     BitSet copySurveyedColumns() {

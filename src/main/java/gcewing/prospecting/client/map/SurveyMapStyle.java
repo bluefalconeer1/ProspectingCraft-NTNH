@@ -3,6 +3,7 @@ package gcewing.prospecting.client.map;
 import gcewing.prospecting.survey.SurveyDisplayStrength;
 import gcewing.prospecting.survey.SurveyMapStyleConfig;
 
+/** Client rendering facade for configured colors and opacity scaling. */
 public final class SurveyMapStyle {
 
     private SurveyMapStyle() {}

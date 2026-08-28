@@ -8,6 +8,7 @@ import net.minecraft.util.StatCollector;
 import com.gtnewhorizons.navigator.api.model.SupportedMods;
 import com.gtnewhorizons.navigator.api.model.buttons.ButtonManager;
 
+/** Controls the Navigator map button: normal click toggles the layer and shift-click opens ore selection. */
 public class OreSurveyButtonManager extends ButtonManager {
 
     public static final OreSurveyButtonManager INSTANCE = new OreSurveyButtonManager();

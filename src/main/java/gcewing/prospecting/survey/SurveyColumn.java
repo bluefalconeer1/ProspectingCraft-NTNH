@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/** Canonical exact ore counts for one scanned X/Z column, with deterministic density/name ordering. */
 public class SurveyColumn {
 
     private final Map<String, Integer> oreCounts = new HashMap<String, Integer>();

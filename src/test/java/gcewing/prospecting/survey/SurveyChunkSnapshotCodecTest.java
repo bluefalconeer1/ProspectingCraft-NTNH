@@ -59,6 +59,65 @@ public class SurveyChunkSnapshotCodecTest {
     }
 
     @Test
+    public void repeatedOreNamesUseCompactPacketDictionary() throws IOException {
+        SurveyChunkSnapshot oneName = filledSnapshot(Arrays.asList("Iron"));
+        SurveyChunkSnapshot threeNames = filledSnapshot(Arrays.asList("Lignite", "Iron", "Gold"));
+
+        assertEquals(854, write(oneName).length);
+        assertEquals(1381, write(threeNames).length);
+        assertEquals(
+            "Iron",
+            roundTrip(oneName).getColumn(15, 15)
+                .getDominantOreName());
+        assertEquals(
+            Arrays.asList("Lignite", "Iron", "Gold"),
+            roundTrip(threeNames).getColumn(15, 15)
+                .getTopOreNames());
+    }
+
+    @Test
+    public void oneOffOreNamesStayDirectWhenDictionaryWouldBeLarger() throws IOException {
+        SurveyChunkSnapshot snapshot = new SurveyChunkSnapshot(0, 0, 0);
+        snapshot.setColumn(0, 0, SurveyColumnSnapshot.oreBearing(72, Arrays.asList("Iron")));
+        snapshot.setColumn(1, 0, SurveyColumnSnapshot.oreBearing(72, Arrays.asList("Gold")));
+
+        byte[] encoded = write(snapshot);
+
+        assertEquals(0, encoded[77]);
+        assertEquals(
+            "Iron",
+            roundTrip(snapshot).getColumn(0, 0)
+                .getDominantOreName());
+        assertEquals(
+            "Gold",
+            roundTrip(snapshot).getColumn(1, 0)
+                .getDominantOreName());
+    }
+
+    @Test
+    public void readsLegacyVersionTwoOrePayload() throws IOException {
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+        DataOutputStream output = new DataOutputStream(bytes);
+        writeHeaderAndMasks(output, 2, 1, 1);
+        output.writeByte(144);
+        output.writeByte(1);
+        output.writeUTF("Iron");
+        output.close();
+
+        SurveyChunkSnapshot snapshot = SurveyChunkSnapshotCodec
+            .read(new DataInputStream(new ByteArrayInputStream(bytes.toByteArray())));
+
+        assertEquals(
+            "Iron",
+            snapshot.getColumn(0, 0)
+                .getDominantOreName());
+        assertEquals(
+            144,
+            snapshot.getColumn(0, 0)
+                .getOreAlpha());
+    }
+
+    @Test
     public void varyingRoundedCornerOpacityDoesNotIncreaseEncodedSize() throws IOException {
         SurveyChunkSnapshot square = new SurveyChunkSnapshot(0, 0, 0);
         SurveyChunkSnapshot rounded = new SurveyChunkSnapshot(0, 0, 0);
@@ -73,20 +132,14 @@ public class SurveyChunkSnapshotCodecTest {
 
     @Test(expected = IOException.class)
     public void rejectsUnknownFormatVersion() throws IOException {
-        SurveyChunkSnapshotCodec.read(new DataInputStream(new ByteArrayInputStream(new byte[] { 3 })));
+        SurveyChunkSnapshotCodec.read(new DataInputStream(new ByteArrayInputStream(new byte[] { 4 })));
     }
 
     @Test(expected = IOException.class)
     public void rejectsOreColumnsThatAreNotMarkedSurveyed() throws IOException {
         ByteArrayOutputStream bytes = new ByteArrayOutputStream();
         DataOutputStream output = new DataOutputStream(bytes);
-        output.writeByte(2);
-        output.writeInt(0);
-        output.writeInt(0);
-        output.writeInt(0);
-        for (int i = 0; i < 4; i++) output.writeLong(0);
-        output.writeLong(1);
-        for (int i = 1; i < 4; i++) output.writeLong(0);
+        writeHeaderAndMasks(output, 2, 0, 1);
         output.close();
 
         SurveyChunkSnapshotCodec.read(new DataInputStream(new ByteArrayInputStream(bytes.toByteArray())));
@@ -102,5 +155,25 @@ public class SurveyChunkSnapshotCodecTest {
         SurveyChunkSnapshotCodec.write(output, snapshot);
         output.close();
         return bytes.toByteArray();
+    }
+
+    private static SurveyChunkSnapshot filledSnapshot(java.util.List<String> oreNames) {
+        SurveyChunkSnapshot snapshot = new SurveyChunkSnapshot(0, 0, 0);
+        for (int z = 0; z < SurveyChunkSnapshot.CHUNK_WIDTH; z++)
+            for (int x = 0; x < SurveyChunkSnapshot.CHUNK_WIDTH; x++)
+                snapshot.setColumn(x, z, SurveyColumnSnapshot.oreBearing(144, oreNames));
+        return snapshot;
+    }
+
+    private static void writeHeaderAndMasks(DataOutputStream output, int formatVersion, long surveyedBits,
+        long oreBearingBits) throws IOException {
+        output.writeByte(formatVersion);
+        output.writeInt(0);
+        output.writeInt(0);
+        output.writeInt(0);
+        output.writeLong(surveyedBits);
+        for (int i = 1; i < 4; i++) output.writeLong(0);
+        output.writeLong(oreBearingBits);
+        for (int i = 1; i < 4; i++) output.writeLong(0);
     }
 }

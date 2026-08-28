@@ -21,9 +21,7 @@ public class ProspectingCraftClient extends BaseModClient<ProspectingCraft> {
 
     public ProspectingCraftClient(ProspectingCraft mod) {
         super(mod);
-        debugModelRegistration = true;
         ProspectingCraft.channel.handlers.add(SurveyChunkClientHandler.INSTANCE);
-
     }
 
     @Override

@@ -90,4 +90,12 @@ public class SeismicRecorderBlock extends BaseBlock<SeismicRecorderTE> {
         }
     }
 
+    @Override
+    public void breakBlock(World world, BlockPos pos, IBlockState state) {
+        if (!world.isRemote) {
+            SeismicRecorderTE te = getTileEntity(world, pos);
+            if (te != null) te.cancelActiveScan();
+        }
+    }
+
 }
