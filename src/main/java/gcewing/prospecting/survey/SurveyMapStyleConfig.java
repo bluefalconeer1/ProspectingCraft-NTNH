@@ -217,6 +217,7 @@ public final class SurveyMapStyleConfig {
         colors.put("RareEarth", 0x7D8484);
         colors.put("RedPhosphorus", 0x68020A);
         colors.put("Redstone", 0x603736);
+        colors.put("Salt", 0xE8E4DC);
         colors.put("Saltpeter", 0x9E9E9E);
         colors.put("Schrabidium", 0x059B9B);
         colors.put("Silver", 0xD9E7F2);
